@@ -129,3 +129,17 @@ grant select, insert, update, delete on public.docs, public.profiles, public.fol
 revoke all on public.docs, public.profiles, public.follows, public.shares from anon;
 revoke all on public.strava_tokens, public.strava_states from anon, authenticated;
 grant select, insert, update, delete on public.strava_tokens, public.strava_states to service_role;
+
+-- =====================================================================
+-- 7) Muro en directo (Realtime): avisa a la app cuando un amigo publica
+--    o actualiza su entreno. Realtime aplica las mismas reglas de arriba.
+-- =====================================================================
+do $$
+begin
+  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'shares') then
+    alter publication supabase_realtime add table public.shares;
+  end if;
+  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'follows') then
+    alter publication supabase_realtime add table public.follows;
+  end if;
+end $$;

@@ -806,6 +806,17 @@ img{max-width:100%}
 .strava-logo{font-family:var(--f-display);font-weight:700;color:#FC4C02;letter-spacing:.12em}
 .btn.strava-btn{background:#FC4C02;color:#fff}
 .strava.off .btn.strava-btn{opacity:.4;cursor:default}
+.tab-dot{position:absolute;top:9px;left:calc(50% + 7px);width:9px;height:9px;border-radius:50%;background:var(--lila);box-shadow:0 0 0 2px #000,0 0 10px var(--lila)}
+.tag.live{display:inline-flex;align-items:center;gap:6px;background:rgba(183,155,255,.14);color:#fff;border-color:var(--lila)}
+.tag.live i{width:7px;height:7px;border-radius:50%;background:var(--lila);box-shadow:0 0 8px var(--lila);animation:livep 1.4s ease-in-out infinite}
+@keyframes livep{50%{opacity:.25;transform:scale(.7)}}
+.act.is-live{border-color:var(--lila-line);box-shadow:0 0 0 1px var(--lila-line),0 10px 30px -18px var(--lila-glow)}
+.live-box{margin:10px 0 4px;display:flex;flex-direction:column;gap:6px}
+.live-row{display:flex;justify-content:space-between;align-items:baseline;gap:4px 12px;font-size:14px;flex-wrap:wrap}
+.live-row span{color:var(--dim);font-size:13px}
+.live-bar{height:6px;border-radius:3px;background:#1D1A26;overflow:hidden}
+.live-bar i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--lila-deep),var(--lila),#fff);transition:width .4s}
+@media (prefers-reduced-motion:reduce){.tag.live i{animation:none}}
 .seg-n{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;margin-left:6px;border-radius:9px;background:var(--lila);color:var(--on-lila);font-size:11px;font-weight:800}
 .lg-f{display:flex;flex-direction:column;gap:12px}
 .lg-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:14px;background:var(--surface-2);border:1px solid var(--line)}
@@ -847,7 +858,7 @@ img{max-width:100%}
     <a class="tab" href="#hoy" data-tab="hoy"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4M9 14.5l2 2 4-4"/></svg><span>Hoy</span></a>
     <a class="tab" href="#comida" data-tab="comida"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10M17 21V3c-2.2 0-4 2.5-4 6v4h4"/></svg><span>Comida</span></a>
     <a class="tab" href="#perfil" data-tab="perfil" id="tab-perfil"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20.5c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><span>Perfil</span></a>
-    <a class="tab" href="#strava" data-tab="social" id="tab-social"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.4"/><path d="M2.8 20c.9-3.6 3.3-5.6 6.2-5.6s5.3 2 6.2 5.6"/><circle cx="16.8" cy="9" r="2.7"/><path d="M16 14.5c2.6-.3 4.5 1.4 5.3 4.6"/></svg><span>Social</span></a>
+    <a class="tab" href="#muro" data-tab="social" id="tab-social"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.4"/><path d="M2.8 20c.9-3.6 3.3-5.6 6.2-5.6s5.3 2 6.2 5.6"/><circle cx="16.8" cy="9" r="2.7"/><path d="M16 14.5c2.6-.3 4.5 1.4 5.3 4.6"/></svg><span>Social</span><i class="tab-dot" id="tab-dot" hidden></i></a>
   </div>
 </nav>
 
@@ -1945,11 +1956,11 @@ const NPC=(function(){
 const view=document.getElementById('view');
 let skipKeep=false, lastTab=null;
 const SUBS=['rutina','actividades','calendario','km','graficos','analisis','retos'];
-const SOCS=['strava','amigos'];
+const SOCS=['muro','amigos','strava'];
 const PAGES=['hoy','comida'].concat(SUBS,SOCS);
-const PAGE_NAME={hoy:'Hoy', comida:'Comida', rutina:'Rutina', actividades:'Actividades', amigos:'Amigos', strava:'Strava', calendario:'Calendario', km:'Km', graficos:'Gráficos', analisis:'Análisis', retos:'Retos'};
+const PAGE_NAME={hoy:'Hoy', comida:'Comida', rutina:'Rutina', actividades:'Actividades', amigos:'Amigos', strava:'Strava', muro:'Muro', calendario:'Calendario', km:'Km', graficos:'Gráficos', analisis:'Análisis', retos:'Retos'};
 const LEGACY={plan:'rutina', progreso:'graficos'};
-function currentTab(){ let h=(location.hash||'').slice(1); h=LEGACY[h]||h; if(h==='perfil') return ui.sub||'rutina'; if(h==='social') return ui.soc||'strava'; return PAGES.includes(h)? h : 'hoy' }
+function currentTab(){ let h=(location.hash||'').slice(1); h=LEGACY[h]||h; if(h==='perfil') return ui.sub||'rutina'; if(h==='social') return ui.soc||'muro'; return PAGES.includes(h)? h : 'hoy' }
 function screenOf(t){ return (t==='hoy'||t==='comida')? t : SOCS.includes(t)? 'social' : 'perfil' }
 function initial(){ const n=(S.profile&&S.profile.name)||''; return n? n.charAt(0).toUpperCase() : 'S' }
 function captureInputs(){ const m={}; view.querySelectorAll('[data-keep]').forEach(el=>{ if(el.id) m[el.id]=el.value }); const a=document.activeElement; return {m, focus:(a&&a.id&&view.contains(a))? a.id : null} }
@@ -1984,7 +1995,7 @@ function render(){
   document.getElementById('streak-chip').classList.toggle('hot',st>=3);
   setTopAvatar();
   document.getElementById('tab-perfil').setAttribute('href','#'+ui.sub);
-  document.getElementById('tab-social').setAttribute('href','#'+(ui.soc||'strava'));
+  document.getElementById('tab-social').setAttribute('href','#'+(ui.soc||'muro')); socDot();
   const scr=screenOf(tab);
   document.querySelectorAll('.tab').forEach(a=>{ if(a.dataset.tab===scr) a.setAttribute('aria-current','page'); else a.removeAttribute('aria-current') });
   const ac=view.querySelector('.seg a[aria-current]'); if(ac){ const sg=ac.parentNode; sg.scrollLeft=Math.max(0,ac.offsetLeft-(sg.clientWidth-ac.offsetWidth)/2) }
@@ -3096,15 +3107,15 @@ function importData(file){
 const SOC={me:null, loaded:false, loading:false, following:[], followers:[], pendingIn:[], pendingOut:[], profiles:{}, feed:[], summaries:{}, results:[], err:''};
 let shareT=null, sharedHash={}, socQT=null;
 function socOn(){ return !!(sb&&uidV) }
-function socReset(){ Object.assign(SOC,{me:null, loaded:false, loading:false, following:[], followers:[], pendingIn:[], pendingOut:[], profiles:{}, feed:[], summaries:{}, results:[], err:''}); sharedHash={}; clearTimeout(shareT) }
-function afterReady(){ scheduleShare(); stravaBoot() }
+function socReset(){ socLiveStop(); Object.assign(SOC,{me:null, loaded:false, loading:false, following:[], followers:[], pendingIn:[], pendingOut:[], profiles:{}, feed:[], summaries:{}, results:[], err:''}); sharedHash={}; clearTimeout(shareT) }
+function afterReady(){ scheduleShare(); stravaBoot(); socLoad(); socLiveStart() }
 async function socLoad(){
   if(!socOn()||SOC.loading) return;
   SOC.loading=true;
   try{
     const me=await sb.from('profiles').select('user_id,username,name').eq('user_id',uidV).maybeSingle();
     if(me.error) throw me.error;
-    SOC.me=me.data||null;
+    SOC.me=me.data||null; if(SOC.me) SOC.profiles[uidV]=SOC.me;
     const fl=await sb.from('follows').select('follower,followee,status');
     if(fl.error) throw fl.error;
     const rows=fl.data||[];
@@ -3114,17 +3125,18 @@ async function socLoad(){
     SOC.pendingIn=rows.filter(r=>r.followee===uidV&&r.status==='pending').map(r=>r.follower);
     const ids=[...new Set(SOC.following.concat(SOC.pendingOut,SOC.followers,SOC.pendingIn))];
     if(ids.length){ const pr=await sb.from('profiles').select('user_id,username,name').in('user_id',ids); (pr.data||[]).forEach(x=>{ SOC.profiles[x.user_id]=x }) }
-    SOC.summaries={}; SOC.feed=[];
+    const sums={}; let feed=[];
     if(SOC.following.length){
       const su=await sb.from('shares').select('user_id,data').in('user_id',SOC.following).eq('id','summary');
-      (su.data||[]).forEach(r=>{ SOC.summaries[r.user_id]=r.data||{} });
-      const ac=await sb.from('shares').select('user_id,id,data,updated_at').in('user_id',SOC.following).like('id','act-%').order('updated_at',{ascending:false}).limit(40);
-      SOC.feed=(ac.data||[]).map(r=>Object.assign({uid:r.user_id},r.data||{})).filter(f=>/^\d{4}-\d\d-\d\d$/.test(String(f.k))).sort((a,b)=>String(b.k).localeCompare(String(a.k))).slice(0,30);
+      (su.data||[]).forEach(r=>{ sums[r.user_id]=r.data||{} });
+      const ac=await sb.from('shares').select('user_id,id,data,updated_at').in('user_id',SOC.following).like('id','act-%').order('updated_at',{ascending:false}).limit(60);
+      feed=(ac.data||[]).map(r=>Object.assign({},r.data||{},{uid:r.user_id, upd:r.updated_at})).filter(f=>/^\d{4}-\d\d-\d\d$/.test(String(f.k))).sort((a,b)=>String(b.k).localeCompare(String(a.k))||String(b.upd).localeCompare(String(a.upd))).slice(0,40);
     }
+    SOC.summaries=sums; SOC.feed=feed;
     SOC.loaded=true; SOC.err='';
   }catch(e){ SOC.err='No se pudo cargar. Revisa tu conexión y toca «Actualizar».'; SOC.loaded=true }
   SOC.loading=false;
-  if(currentTab()==='amigos') render();
+  if(SOCS.includes(currentTab())) render(); else socDot();
 }
 function shareOn(){ return !(S.social&&S.social.share===false) }
 function scheduleShare(){ if(!socOn()||mode!=='db') return; clearTimeout(shareT); shareT=setTimeout(publishShares,4000) }
@@ -3133,14 +3145,16 @@ function summaryData(){
   const si=streakInfo(), xp=totalXp(), t=todayKey(), mon=mondayOf(t), ks=Object.keys(S.log.days);
   let wk=0, mk=0, tk=0, ses=0;
   ks.forEach(k=>{ const L=S.log.days[k], km=ownKm(L); tk+=km; if(k.slice(0,7)===t.slice(0,7)) mk+=km; if(k>=mon) wk+=km; if(logStats(L).trained) ses++ });
-  return {name:S.profile.name||'', level:Math.floor(xp/LEVEL_XP)+1, xp, streak:si.n, since:si.since, best:si.best, weeks:weekStreak(), weekKm:round2(wk), monthKm:round2(mk), totalKm:round2(tk), sessions:ses};
+  return {name:S.profile.name||'', level:Math.floor(xp/LEVEL_XP)+1, xp, streak:si.n, since:si.since, best:si.best, weeks:weekStreak(), weekKm:round2(wk), monthKm:round2(mk), totalKm:round2(tk), sessions:ses, photo:S.profile.photo||null};
 }
 function actShare(k){
   const L=S.log.days[k]; if(!L) return null;
   const st=logStats(L), own=ownKm(L); if(!st.sets&&!own) return null;
   const sm=sessionSum(k), a=L.act||{}, mus=(function(){ const P=new Set(), Sx=new Set(); Object.keys(L.ex||{}).filter(id=>L.ex[id].done.some(Boolean)).forEach(id=>{ const M=MOV[(S.exercises[id]&&S.exercises[id].mv)||guessMove(L.ex[id].n)]||MOV.idle; M.P.forEach(x=>P.add(x)); M.S.forEach(x=>Sx.add(x)) }); if(own){ MOV.run.P.forEach(x=>P.add(x)); MOV.run.S.forEach(x=>Sx.add(x)) } P.forEach(x=>Sx.delete(x)); return {P:[...P], S:[...Sx]} })();
   const ex=Object.keys(L.ex||{}).filter(id=>L.ex[id].done.some(Boolean)).slice(0,12).map(id=>{ const e=L.ex[id], x=S.exercises[id], n=e.done.filter(Boolean).length, rl=e.log? e.done.map((d,j)=>d&&e.log[j]? e.log[j].r : null).filter(v=>v!=null) : []; return {n:(x&&x.name)||e.n||'Ejercicio', s:n, r:rl.length===n&&n? rl.join(', ') : String(e.reps), w:e.w>0? kgTxt(x,e.w) : ''} });
-  return {k, title:a.title||sm.title, end:a.end||null, dur:a.dur||0, sets:st.sets, vol:Math.round(st.vol), run:own? {km:own, min:+L.run.min||0} : null, rpe:sm.rpe||0, P:mus.P, S:mus.S, ex, note:a.note||'', photo:a.photo||null};
+  let live=null;
+  if(k===todayKey()&&!a.end&&st.sets){ let tot=0; planFor(k).ex.forEach(id=>{ const e=L.ex&&L.ex[id]; tot+= e? e.done.length : ((S.exercises[id]&&S.exercises[id].sets)||0) }); const cx=L.lastEx&&S.exercises[L.lastEx]; live={start:L.t0||null, at:L.lastAt||null, tot:Math.max(tot,st.sets), cur:cx? cx.name : ''} }
+  return {k, live, title:a.title||sm.title, end:a.end||null, dur:a.dur||0, sets:st.sets, vol:Math.round(st.vol), run:own? {km:own, min:+L.run.min||0} : null, rpe:sm.rpe||0, P:mus.P, S:mus.S, ex, note:a.note||'', photo:a.photo||null};
 }
 async function publishShares(){
   if(!socOn()||mode!=='db') return;
@@ -3167,7 +3181,11 @@ function hydrateShared(root){
 }
 function pName(uid){ const p=SOC.profiles[uid]||{}; return p.name||('@'+(p.username||'amigo')) }
 function pUser(uid){ const p=SOC.profiles[uid]||{}; return p.username? '@'+p.username : '' }
-function miniAvatar(uid){ return '<span class="avatar" aria-hidden="true"><span>'+esc(String(pName(uid)).replace('@','').charAt(0).toUpperCase()||'?')+'</span></span>' }
+function miniAvatar(uid){
+  const own=uid===uidV, ph=own? S.profile.photo : (SOC.summaries[uid]||{}).photo, ok=typeof ph==='string'&&/^[a-z0-9-]{3,40}$/i.test(ph);
+  const letter=own? initial() : (String(pName(uid)).replace('@','').charAt(0).toUpperCase()||'?');
+  return '<span class="avatar" aria-hidden="true"><span>'+esc(letter)+'</span>'+(ok? (own? '<img data-ph="'+esc(ph)+'" alt="">' : '<img data-sph="'+esc(uid)+'|'+esc(ph)+'" alt="">') : '')+'</span>';
+}
 function safeMus(a){ return (Array.isArray(a)? a : []).filter(m=>Object.prototype.hasOwnProperty.call(MUS,m)) }
 function friendAct(f,i){
   const rows=[]; const dur=+f.dur||0, sets=+f.sets||0, vol=+f.vol||0, rpe=+f.rpe||0, run=f.run&&+f.run.km>0? f.run : null;
@@ -3176,9 +3194,11 @@ function friendAct(f,i){
   if(rpe>=1&&rpe<=10) rows.push(['Esfuerzo',nf1.format(rpe)+' '+rpeEmoji(rpe)]);
   const P=safeMus(f.P), Sx=safeMus(f.S), ex=(Array.isArray(f.ex)? f.ex : []).slice(0,12);
   const photo=(typeof f.photo==='string'&&/^[a-z0-9-]{3,40}$/i.test(f.photo))? f.photo : null;
-  return '<article class="card act anim" style="--i:'+Math.min(i+3,12)+'"><header class="act-h"><div class="fh">'+miniAvatar(f.uid)+'<div><b>'+esc(pName(f.uid))+'</b><p class="eyebrow">'+esc(fmtLong(f.k))+'</p></div></div>'+(f.end? '<span class="tag solid">Finalizado</span>' : '')+'</header>'
+  const own=f.uid===uidV, lv=isLive(f), endTs=+f.end||0;
+  return '<article class="card act anim'+(lv?' is-live':'')+'" style="--i:'+Math.min(i+3,12)+'"><header class="act-h"><div class="fh">'+miniAvatar(f.uid)+'<div><b>'+(own? 'Tú' : esc(pName(f.uid)))+'</b><p class="eyebrow">'+esc(fmtLong(f.k))+(endTs? ' · '+esc(fmtHM(endTs)) : '')+'</p></div></div>'+(lv? '<span class="tag live"><i></i>En directo</span>' : endTs? '<span class="tag solid">Finalizado</span>' : '')+'</header>'
+    +(lv? liveBar(f) : '')
     +'<h3>'+esc(String(f.title||'Entreno').slice(0,60))+'</h3>'
-    +(photo? '<div class="act-ph"><img data-sph="'+esc(f.uid)+'|'+esc(photo)+'" alt="Foto del entreno de '+esc(pName(f.uid))+'"></div>' : '')
+    +(photo? '<div class="act-ph"><img '+(own? 'data-ph="'+esc(photo)+'"' : 'data-sph="'+esc(f.uid)+'|'+esc(photo)+'"')+' alt=""Foto del entreno de '+esc(pName(f.uid))+'"></div>' : '')
     +(rows.length? statsHtml(rows) : '')
     +(P.length? '<div class="mus-row">'+bodyMapPS(P,Sx,false)+'<div class="mus-info"><span class="mus-k">Músculos trabajados</span><div class="mchips">'+musChips(P,Sx)+'</div></div></div>' : '')
     +(ex.length? '<ul class="act-ex">'+ex.map(x=>'<li><b>'+esc(String(x.n||'').slice(0,40))+'</b> · '+fmtInt(+x.s||0)+' series · '+esc(String(x.r||'').slice(0,30))+' reps'+(x.w? ' · '+esc(String(x.w).slice(0,30)) : '')+'</li>').join('')+'</ul>' : '')
@@ -3202,16 +3222,14 @@ function renderAmigos(){
   if(!socOn()) return h+'<div class="empty anim" style="--i:1"><strong>Necesitas una cuenta</strong>'+(sb? 'Entra en tu cuenta para seguir a tus amigos.' : 'Esta copia funciona sin cuenta. Cuando la app tenga su base de datos podrás seguir a tus amigos.')+'</div>';
   if(!SOC.loaded){ if(!SOC.loading) socLoad(); return h+'<p class="hint anim" style="--i:1">Cargando…</p>' }
   if(SOC.err) h+='<p class="food-alert anim" style="--i:1">'+ICON.warn+'<span>'+esc(SOC.err)+'</span></p>';
-  if(!SOC.me) h+='<section class="card me-card anim" style="--i:1"><h2>Elige tu nombre de usuario</h2><p class="hint">Es como te encontrarán tus amigos. De 3 a 20 letras, números, punto o guion bajo.</p><label class="field"><span>Nombre de usuario</span><input id="soc-user" maxlength="20" autocapitalize="off" autocomplete="username" spellcheck="false" placeholder="fran.runner"></label><p class="err" id="soc-err" hidden></p><button class="btn primary sm" data-act="soc-user-save">Guardar</button></section>';
+  if(!SOC.me) h+='<section class="card me-card anim" style="--i:1"><h2>Elige tu nombre de usuario</h2><p class="hint">Es como te encontrarán tus amigos. De 3 a 20 letras, números, punto o guion bajo.</p><label class="field"><span>Nombre de usuario</span><input id="soc-user" data-keep maxlength="20" autocapitalize="off" autocomplete="username" spellcheck="false" placeholder="fran.runner"></label><p class="err" id="soc-err" hidden></p><button class="btn primary sm" data-act="soc-user-save">Guardar</button></section>';
   else h+='<section class="card me-card anim" style="--i:1"><div class="fh">'+'<span class="avatar"><span>'+esc(initial())+'</span></span><div><span class="me-user">@'+esc(SOC.me.username)+'</span><p class="hint">Pasa tu usuario a tus amigos para que te sigan.</p></div></div>'
     +'<div class="tiles" style="margin-top:0">'+tile('Seguidores',SOC.followers.length)+tile('Siguiendo',SOC.following.length)+tile('Solicitudes',SOC.pendingIn.length)+'</div>'
     +'<label class="switch"><input type="checkbox" id="soc-share"'+(shareOn()?' checked':'')+'><span>Compartir mis entrenos, mi racha y mis kilómetros con mis seguidores</span></label>'
     +'<p class="hint">Solo los ven las personas que aceptas. Las carreras importadas de Strava no se comparten: Strava no lo permite.</p></section>';
   if(SOC.pendingIn.length) h+='<section class="sec anim" style="--i:2"><div class="sec-head"><h2>Quieren seguirte</h2><span class="tag solid">'+SOC.pendingIn.length+'</span></div><ul class="fr-list">'+SOC.pendingIn.map(u=>friendRow(u,'request')).join('')+'</ul></section>';
   if(SOC.me) h+='<section class="sec anim" style="--i:3"><div class="sec-head"><h2>Buscar amigos</h2></div><label class="field"><span>Nombre de usuario</span><input id="soc-q" data-keep maxlength="20" autocapitalize="off" spellcheck="false" placeholder="Escribe al menos 2 letras"></label><div id="soc-res" style="margin-top:8px">'+socResultsHtml()+'</div></section>';
-  h+='<section class="sec anim" style="--i:4"><div class="sec-head"><h2>Actividad de tus amigos</h2><button class="link" data-act="soc-refresh">Actualizar</button></div>';
-  h+= SOC.feed.length? '<div class="acts">'+SOC.feed.map((f,i)=>friendAct(f,i)).join('')+'</div>' : '<div class="empty"><strong>'+(SOC.following.length? 'Tus amigos aún no han compartido entrenos' : 'Aún no sigues a nadie')+'</strong>'+(SOC.following.length? 'Cuando entrenen, aparecerá aquí.' : 'Busca a tus amigos por su nombre de usuario y mándales una solicitud.')+'</div>';
-  h+='</section>';
+  h+='<p class="hint anim" style="--i:4">Los entrenos de tus amigos, en directo y con sus fotos, están en el <a class="link" href="#muro">Muro</a>.</p>';
   if(SOC.following.length) h+='<section class="sec anim" style="--i:5"><div class="sec-head"><h2>Siguiendo</h2></div><ul class="fr-list">'+SOC.following.map(u=>friendRow(u,'following')).join('')+'</ul></section>';
   if(SOC.pendingOut.length) h+='<section class="sec anim" style="--i:6"><div class="sec-head"><h2>Solicitudes enviadas</h2></div><ul class="fr-list">'+SOC.pendingOut.map(u=>friendRow(u,'pending')).join('')+'</ul></section>';
   if(SOC.followers.length) h+='<section class="sec anim" style="--i:7"><div class="sec-head"><h2>Tus seguidores</h2></div><ul class="fr-list">'+SOC.followers.map(u=>friendRow(u,'follower')).join('')+'</ul></section>';
@@ -3282,16 +3300,80 @@ function stravaCard(){
     +'<p class="hint">'+(c? 'Tus carreras de Strava se importan solas al abrir la app'+(S.strava.last? ' (última vez: '+fmtShort(S.strava.last)+')' : '')+'. Si tu reloj Garmin sube a Strava, también llegan aquí.' : 'Conecta tu cuenta y Serevix importará tus carreras con distancia, ritmo, pulso, desnivel y ruta. Si tu Garmin sube a Strava, también llegan aquí.')+'</p>'
     +'<div class="row-actions">'+(c? '<button class="btn primary sm" data-act="strava-sync">Sincronizar ahora</button><button class="btn ghost sm" data-act="strava-off">Desconectar</button>' : '<button class="btn strava-btn sm" data-act="strava-on">Conectar con Strava</button>')+'</div></section>';
 }
+/* ---------- Muro en directo ---------- */
+let socCh=null, socPollT=null, socRT=null;
+function fmtHM(ts){ try{ return new Date(+ts).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}) }catch(e){ return '' } }
+function agoTxt(ts){ const m=Math.floor((Date.now()-(+ts||0))/60000); return !(m>=1)? 'ahora mismo' : m<60? 'hace '+m+' min' : 'hace '+Math.floor(m/60)+' h' }
+function isLive(f){ return !!(f&&f.live&&typeof f.live==='object'&&!f.end&&f.k===todayKey()&&(+f.sets||0)>0&&Date.now()-(+f.live.at||Date.parse(f.upd)||0)<90*60e3) }
+function liveBar(f){
+  const L=f.live||{}, d=+f.sets||0, tot=Math.max(+L.tot||0,d), pc=tot? Math.min(100,d/tot*100) : 0, at=+L.at||Date.parse(f.upd)||Date.now();
+  return '<div class="live-box"><div class="live-row"><b>'+fmtInt(d)+' de '+fmtInt(tot)+' series</b><span>'+(L.cur? esc(String(L.cur).slice(0,40))+' · ' : '')+esc(agoTxt(at))+'</span></div><div class="live-bar"><i style="width:'+pc.toFixed(0)+'%"></i></div>'+(+L.start? '<p class="hint">Empezó a las '+esc(fmtHM(+L.start))+'</p>' : '')+'</div>';
+}
+function socSeenKey(){ return 'srx-soc-seen-'+(uidV||'') }
+function socSeen(){ try{ return +localStorage.getItem(socSeenKey())||0 }catch(e){ return 0 } }
+function socMarkSeen(){ try{ localStorage.setItem(socSeenKey(), String(Date.now())) }catch(e){} }
+function socUnseen(){ const t=socSeen(); return SOC.feed.filter(f=>(Date.parse(f.upd)||0)>t).length+SOC.pendingIn.length }
+function socDot(){ const d=document.getElementById('tab-dot'); if(!d) return; const n=(socOn()&&SOC.loaded&&screenOf(currentTab())!=='social')? socUnseen() : 0; d.hidden=!n }
+function ownPosts(){
+  const t=todayKey(), out=[];
+  for(let i=0;i<14;i++){ const k=addDays(t,-i), d=actShare(k); if(!d) continue; const L=S.log.days[k]; out.push(Object.assign(d,{uid:uidV, upd:new Date((d.live&&d.live.at)||d.end||(L&&L.t0)||parseKey(k).getTime()).toISOString()})) }
+  return out;
+}
+function muroMe(){
+  const k=todayKey(), L=S.log.days[k], st=L? logStats(L) : null, a=(L&&L.act)||{};
+  let body, btn='';
+  if(!SOC.me) body='Elige tu nombre de usuario en <a class="link" href="#amigos">Amigos</a> para que tus amigos te encuentren.';
+  else if(!shareOn()) body='No estás compartiendo tus entrenos. Actívalo en <a class="link" href="#amigos">Amigos</a>.';
+  else if(!st||!st.trained) body='Cuando marques tu primera serie, tus amigos lo verán aquí en directo.';
+  else if(!a.end){ body='Tus amigos ven tu entreno en directo: llevas '+fmtInt(st.sets)+' serie'+(st.sets==1?'':'s')+'. Al terminar, publícalo con una foto.'; btn='<button class="btn primary sm" data-act="fin-day">'+ICON.flag+'Finalizar y publicar</button>' }
+  else { body=a.photo? 'Tu entreno de hoy ya está publicado con su foto.' : 'Tu entreno de hoy está publicado. Añádele una foto para tus amigos.'; btn=photoBtn('act:'+k, a.photo? 'Cambiar foto' : 'Añadir foto') }
+  return '<section class="card me-card anim" style="--i:1"><div class="fh">'+miniAvatar(uidV)+'<div><b>Tu entreno de hoy</b><p class="hint">'+body+'</p></div></div>'+(btn? '<div class="row-actions">'+btn+'</div>' : '')+'</section>';
+}
+function renderMuro(){
+  let h='<div class="sub-head anim" style="--i:0"><h2>Muro</h2><p class="sec-sub">Los entrenos de tus amigos en directo y sus fotos al terminar.</p></div>';
+  if(!socOn()) return h+'<div class="empty anim" style="--i:1"><strong>Necesitas una cuenta</strong>'+(sb? 'Entra en tu cuenta para ver a tus amigos.' : 'Esta copia funciona sin cuenta. Cuando la app tenga su base de datos podrás ver a tus amigos.')+'</div>';
+  if(!SOC.loaded){ if(!SOC.loading) socLoad(); return h+'<p class="hint anim" style="--i:1">Cargando…</p>' }
+  socMarkSeen();
+  if(SOC.err) h+='<p class="food-alert anim" style="--i:1">'+ICON.warn+'<span>'+esc(SOC.err)+'</span></p>';
+  h+=muroMe();
+  const all=SOC.feed.concat(shareOn()? ownPosts() : []);
+  const live=all.filter(isLive).sort((x,z)=>(+(z.live||{}).at||0)-(+(x.live||{}).at||0));
+  const rest=all.filter(f=>!isLive(f)).sort((x,z)=>String(z.k).localeCompare(String(x.k))||String(z.upd).localeCompare(String(x.upd))).slice(0,40);
+  if(live.length) h+='<section class="sec anim" style="--i:2"><div class="sec-head"><h2>En directo</h2><span class="tag live"><i></i>'+live.length+(live.length==1? ' entrenando' : ' entrenando')+'</span></div><div class="acts">'+live.map((f,i)=>friendAct(f,i)).join('')+'</div></section>';
+  h+='<section class="sec anim" style="--i:3"><div class="sec-head"><h2>Últimos entrenos</h2><button class="link" data-act="soc-refresh">Actualizar</button></div>';
+  h+= rest.length? '<div class="acts">'+rest.map((f,i)=>friendAct(f,i+live.length)).join('')+'</div>'
+     : '<div class="empty"><strong>'+(SOC.following.length? 'Tus amigos aún no han compartido entrenos' : 'Aún no sigues a nadie')+'</strong>'+(SOC.following.length? 'Cuando entrenen, aparecerá aquí al momento.' : 'Ve a <a class="link" href="#amigos">Amigos</a>, busca a tus amigos por su nombre de usuario y mándales una solicitud.')+'</div>';
+  return h+'</section>';
+}
+function socPing(){ clearTimeout(socRT); socRT=setTimeout(()=>{ if(socOn()) socLoad() },1200) }
+function socLiveStart(){
+  if(!socOn()) return;
+  if(!socCh){
+    try{
+      const ping=p=>{ const r=(p&&p.new)||{}; if(r.user_id===uidV) return; socPing() };
+      socCh=sb.channel('serevix-muro')
+        .on('postgres_changes',{event:'INSERT',schema:'public',table:'shares'},ping)
+        .on('postgres_changes',{event:'UPDATE',schema:'public',table:'shares'},ping)
+        .on('postgres_changes',{event:'INSERT',schema:'public',table:'follows'},()=>socPing())
+        .on('postgres_changes',{event:'UPDATE',schema:'public',table:'follows'},()=>socPing())
+        .subscribe();
+    }catch(e){ socCh=null }
+  }
+  clearInterval(socPollT); socPollT=setInterval(()=>{ if(document.visibilityState==='visible'&&socOn()) socLoad() },60000);
+}
+function socLiveStop(){ if(socCh){ try{ sb.removeChannel(socCh) }catch(e){} socCh=null } clearInterval(socPollT); socPollT=null; clearTimeout(socRT) }
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&socOn()&&SOC.loaded) socPing() });
+
 /* ---------- pestaña Social: Strava y amigos ---------- */
 function renderSocial(tab){
-  let h='<section class="hero-day anim" style="--i:0"><p class="eyebrow">'+(S.profile.name? esc(S.profile.name)+' · ' : '')+'Strava y amigos</p><h1>Social</h1></section>';
-  h+='<div id="seg-anchor"></div><nav class="seg" aria-label="Secciones de Social">'+SOCS.map(id=>'<a href="#'+id+'"'+(tab===id?' aria-current="page"':'')+'>'+PAGE_NAME[id]+(id==='amigos'&&SOC.pendingIn.length? '<span class="seg-n">'+SOC.pendingIn.length+'</span>' : '')+'</a>').join('')+'</nav>';
-  h+='<div class="sub-body" id="sub-body">'+(tab==='amigos'? renderAmigos() : renderStravaPage())+'</div>';
+  let h='<section class="hero-day anim" style="--i:0"><p class="eyebrow">'+(S.profile.name? esc(S.profile.name)+' · ' : '')+'Tus amigos, en directo</p><h1>Social</h1></section>';
+  h+='<div id="seg-anchor"></div><nav class="seg" aria-label="Secciones de Social">'+SOCS.filter(id=>id!=='strava'||stravaOn()||tab==='strava').map(id=>'<a href="#'+id+'"'+(tab===id?' aria-current="page"':'')+'>'+PAGE_NAME[id]+(id==='amigos'&&SOC.pendingIn.length? '<span class="seg-n">'+SOC.pendingIn.length+'</span>' : '')+'</a>').join('')+'</nav>';
+  h+='<div class="sub-body" id="sub-body">'+(tab==='amigos'? renderAmigos() : tab==='strava'? renderStravaPage() : renderMuro())+'</div>';
   return h;
 }
 function stravaRuns(){ return runList().filter(r=>r.src==='strava') }
 function stravaHint(){
-  if(S.strava&&S.strava.connected) return '';
+  if(!stravaOn()||(S.strava&&S.strava.connected)) return '';
   return '<p class="hint anim" style="--i:1;margin-top:6px">¿Usas Strava o un reloj Garmin? Conéctalo en <a class="link" href="#strava">Social › Strava</a> y tus carreras llegarán solas.</p>';
 }
 function renderStravaPage(){
@@ -3403,7 +3485,7 @@ const A={
       if(run.phase==='set'){ lg.dur=Math.round((now-run.setStart)/1000); if(run.restDone>=10) lg.rest=run.restDone }
       else { const rs=Math.round((now-run.start)/1000)-Math.min(60,Math.max(15,r*3)); if(rs>=10) lg.rest=rs }
     }
-    e.log=e.log||[]; while(e.log.length<j) e.log.push(null); e.log[j]=lg; e.done[j]=true;
+    e.log=e.log||[]; while(e.log.length<j) e.log.push(null); e.log[j]=lg; e.done[j]=true; L.lastEx=id; L.lastAt=now;
     if(wi&&w!==e.w) e.w=w;
     if(lg.rest) e.rests=(e.rests||[]).concat(lg.rest).slice(-20);
     const next=e.done.findIndex(d=>!d);

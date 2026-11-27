@@ -48,9 +48,12 @@ Funciona en cuanto ejecutes `supabase/schema.sql`, que ya incluye las tablas de 
 
 - En **Social › Amigos** (la pestaña de abajo a la derecha) cada persona elige su nombre de usuario, busca a sus amigos y les manda una solicitud.
 - Cuando la otra persona acepta, ves sus entrenos, su racha, su nivel y sus kilómetros.
+- En **Social › Muro** ves a tus amigos **en directo** mientras entrenan (serie a serie, al momento) y sus publicaciones con foto y comentario cuando terminan. Si llega algo nuevo, sale un punto en la pestaña Social.
 - Cada uno decide si comparte (interruptor en Amigos). Solo lo ven los seguidores aceptados.
 
 ### 7. Strava (y Garmin a través de Strava)
+> **Ojo:** desde junio de 2026 Strava exige una suscripción de pago a quien crea la app. Mientras no la haya, la conexión con Strava queda oculta en la app y las carreras se pueden importar con archivos GPX o TCX.
+
 1. En [strava.com/settings/api](https://www.strava.com/settings/api) crea una app:
    - Nombre: **Serevix**.
    - Sitio web: tu dirección de Vercel.
