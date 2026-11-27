@@ -817,6 +817,29 @@ img{max-width:100%}
 .live-bar{height:6px;border-radius:3px;background:#1D1A26;overflow:hidden}
 .live-bar i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--lila-deep),var(--lila),#fff);transition:width .4s}
 @media (prefers-reduced-motion:reduce){.tag.live i{animation:none}}
+.gps-go{margin-top:4px}
+.gps-or{margin:2px 0 6px}
+.gps-live{display:flex;flex-direction:column;gap:12px;margin-top:4px}
+.gps-top{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.gps-km{display:flex;align-items:baseline;gap:8px;font-family:var(--f-display);font-weight:700;line-height:1}
+.gps-km span{font-size:76px;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:#fff;text-shadow:0 0 34px var(--lila-glow)}
+.gps-km small{font-size:22px;color:var(--dim)}
+.gps-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(92px,1fr));gap:8px}
+.gps-stats div{background:#100E16;border:1px solid var(--line);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:3px;min-width:0}
+.gps-stats span{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+.gps-stats b{font-family:var(--f-display);font-size:22px;font-variant-numeric:tabular-nums}
+.gps-discard{align-self:center;color:var(--dim)}
+.gps-pill{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--tabh) + env(safe-area-inset-bottom,0px) + 12px);z-index:26;display:flex;align-items:center;gap:10px;padding:10px 18px;border-radius:999px;background:#fff;color:#000;text-decoration:none;font-weight:700;font-variant-numeric:tabular-nums;box-shadow:0 10px 30px -8px var(--lila-glow)}
+.gps-pill i{width:8px;height:8px;border-radius:50%;background:var(--lila-deep);animation:livep 1.4s ease-in-out infinite}
+.gps-pill span{color:#555}
+.live-run{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.lr-km{display:flex;align-items:baseline;gap:4px;font-family:var(--f-display);font-weight:700;line-height:1}
+.lr-km b{font-size:42px;font-variant-numeric:tabular-nums}
+.lr-km small{color:var(--dim);font-size:16px}
+.lr-st{display:flex;flex-direction:column;gap:2px;font-size:13px;color:var(--dim)}
+.lr-st span:first-child{color:#fff;font-weight:700}
+.me-card .fh .avatar{width:52px;height:52px;font-size:22px}
+@media (prefers-reduced-motion:reduce){.gps-pill i{animation:none}}
 .seg-n{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;margin-left:6px;border-radius:9px;background:var(--lila);color:var(--on-lila);font-size:11px;font-weight:800}
 .lg-f{display:flex;flex-direction:column;gap:12px}
 .lg-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:14px;background:var(--surface-2);border:1px solid var(--line)}
@@ -1737,7 +1760,7 @@ function splitsSvg(sp){
 function garminBlock(r){
   const st=[['Distancia',fmtKm(r.km)+' km'],['Tiempo',fmtDur(r.min)],['Ritmo',fmtPace(r.min/r.km)+' /km']];
   if(r.hr) st.push(['FC media',r.hr+' ppm']); if(r.hrMax) st.push(['FC máx.',r.hrMax+' ppm']); if(r.elev!=null) st.push(['Desnivel +',fmtInt(r.elev)+' m']); if(r.cad) st.push(['Cadencia',r.cad+' ppm']);
-  return '<div class="gm"><div class="gm-head"><span class="tag lila">'+(r.src==='strava'? 'Datos de Strava' : 'Garmin')+'</span>'+(r.file? '<span class="hint">'+esc(r.file)+'</span>' : '')+'</div>'+(r.route? routeSvg(r.route) : '')
+  return '<div class="gm"><div class="gm-head"><span class="tag lila">'+(r.src==='strava'? 'Datos de Strava' : r.src==='gps'? 'GPS del móvil' : 'Garmin')+'</span>'+(r.file? '<span class="hint">'+esc(r.file)+'</span>' : '')+'</div>'+(r.route? routeSvg(r.route) : '')
     +'<div class="stats">'+st.map(([a,b])=>'<div><span>'+a+'</span><b>'+b+'</b></div>').join('')+'</div>'+(r.splits&&r.splits.length>1? splitsSvg(r.splits) : '')+'</div>';
 }
 
@@ -2135,16 +2158,18 @@ function renderRunCard(k,p,i){
   if(planned&&planned.cal&&!r) body+='<p class="cal-hint">'+ICON.spark+'<span>Calibración: corre a tu ritmo cómodo. Con esta carrera Serevix fija tus kilómetros y tus ritmos de entrenamiento.</span></p>';
   if(target>0) body+='<div class="run-target"><span class="num">'+fmtKm(target)+'</span><span class="unit">km</span>'+(tpace? '<span class="pace-t">a '+fmtPace(tpace)+' /km</span>' : '')+'<span class="lbl">objetivo de hoy</span></div>';
   body+=musRow('run','run');
-  if(r&&!ui.editRun){
+  if(gpsActive(k)) body+=gpsLiveHtml(k,target);
+  else if(r&&!ui.editRun){
     const pace=r.min&&r.km? r.min/r.km : 0, hit=target>0&&r.km>=target;
     body+='<div class="run-done'+(hit?' hit':'')+'"><span class="rd-main">'+ICON.check+'<b>'+fmtKm(r.km)+' km</b>'+(r.min? ' en '+fmtDur(r.min) : '')+'</span>'+(pace? '<span class="rd-pace">'+fmtPace(pace)+' /km</span>' : '')+'</div>';
     if(pace&&tpace){ const diff=Math.round((pace-tpace)*60); body+='<p class="pace-cmp '+(diff<=0?'good':'bad')+'">'+(diff===0? 'Clavado en tu ritmo objetivo' : diff<0? Math.abs(diff)+' s/km más rápido que tu objetivo' : diff+' s/km más lento que tu objetivo')+'</p>' }
-    if(r.src==='garmin'||r.src==='strava') body+=garminBlock(r);
+    if(r.src==='garmin'||r.src==='strava'||r.src==='gps') body+=garminBlock(r);
     body+=runRate(r);
     body+='<div class="row-actions"><button class="btn ghost sm" data-act="edit-run">Editar</button><button class="btn ghost sm" data-act="del-run">Borrar</button>'+importBtn('Importar de Garmin')+'</div>';
   } else {
     let mm='', ss='';
     if(r&&r.min){ const t=Math.round(r.min*60); mm=Math.floor(t/60); ss=t%60 }
+    body+=gpsStartHtml(k);
     body+='<div class="run-form">'
       +'<label class="field"><span>Km hechos</span><input id="run-km" data-keep inputmode="decimal" autocomplete="off" placeholder="'+(target>0? fmtKm(target) : '5')+'" value="'+(r? fmtKm(r.km) : '')+'"></label>'
       +'<label class="field"><span>Minutos</span><input id="run-min" data-keep inputmode="numeric" autocomplete="off" placeholder="28" value="'+mm+'"></label>'
@@ -3107,8 +3132,8 @@ function importData(file){
 const SOC={me:null, loaded:false, loading:false, following:[], followers:[], pendingIn:[], pendingOut:[], profiles:{}, feed:[], summaries:{}, results:[], err:''};
 let shareT=null, sharedHash={}, socQT=null;
 function socOn(){ return !!(sb&&uidV) }
-function socReset(){ socLiveStop(); Object.assign(SOC,{me:null, loaded:false, loading:false, following:[], followers:[], pendingIn:[], pendingOut:[], profiles:{}, feed:[], summaries:{}, results:[], err:''}); sharedHash={}; clearTimeout(shareT) }
-function afterReady(){ scheduleShare(); stravaBoot(); socLoad(); socLiveStart() }
+function socReset(){ socLiveStop(); gpsKill(); Object.assign(SOC,{me:null, loaded:false, loading:false, following:[], followers:[], pendingIn:[], pendingOut:[], profiles:{}, feed:[], summaries:{}, results:[], err:''}); sharedHash={}; clearTimeout(shareT) }
+function afterReady(){ scheduleShare(); stravaBoot(); socLoad(); socLiveStart(); gpsResume() }
 async function socLoad(){
   if(!socOn()||SOC.loading) return;
   SOC.loading=true;
@@ -3148,13 +3173,14 @@ function summaryData(){
   return {name:S.profile.name||'', level:Math.floor(xp/LEVEL_XP)+1, xp, streak:si.n, since:si.since, best:si.best, weeks:weekStreak(), weekKm:round2(wk), monthKm:round2(mk), totalKm:round2(tk), sessions:ses, photo:S.profile.photo||null};
 }
 function actShare(k){
-  const L=S.log.days[k]; if(!L) return null;
-  const st=logStats(L), own=ownKm(L); if(!st.sets&&!own) return null;
+  const L=S.log.days[k]||(gpsActive(k)? {} : null); if(!L) return null;
+  const st=logStats(L), own=ownKm(L), gl=gpsLiveFor(k); if(!st.sets&&!own&&!gl) return null;
   const sm=sessionSum(k), a=L.act||{}, mus=(function(){ const P=new Set(), Sx=new Set(); Object.keys(L.ex||{}).filter(id=>L.ex[id].done.some(Boolean)).forEach(id=>{ const M=MOV[(S.exercises[id]&&S.exercises[id].mv)||guessMove(L.ex[id].n)]||MOV.idle; M.P.forEach(x=>P.add(x)); M.S.forEach(x=>Sx.add(x)) }); if(own){ MOV.run.P.forEach(x=>P.add(x)); MOV.run.S.forEach(x=>Sx.add(x)) } P.forEach(x=>Sx.delete(x)); return {P:[...P], S:[...Sx]} })();
   const ex=Object.keys(L.ex||{}).filter(id=>L.ex[id].done.some(Boolean)).slice(0,12).map(id=>{ const e=L.ex[id], x=S.exercises[id], n=e.done.filter(Boolean).length, rl=e.log? e.done.map((d,j)=>d&&e.log[j]? e.log[j].r : null).filter(v=>v!=null) : []; return {n:(x&&x.name)||e.n||'Ejercicio', s:n, r:rl.length===n&&n? rl.join(', ') : String(e.reps), w:e.w>0? kgTxt(x,e.w) : ''} });
   let live=null;
   if(k===todayKey()&&!a.end&&st.sets){ let tot=0; planFor(k).ex.forEach(id=>{ const e=L.ex&&L.ex[id]; tot+= e? e.done.length : ((S.exercises[id]&&S.exercises[id].sets)||0) }); const cx=L.lastEx&&S.exercises[L.lastEx]; live={start:L.t0||null, at:L.lastAt||null, tot:Math.max(tot,st.sets), cur:cx? cx.name : ''} }
-  return {k, live, title:a.title||sm.title, end:a.end||null, dur:a.dur||0, sets:st.sets, vol:Math.round(st.vol), run:own? {km:own, min:+L.run.min||0} : null, rpe:sm.rpe||0, P:mus.P, S:mus.S, ex, note:a.note||'', photo:a.photo||null};
+  if(gl) live=Object.assign(live||{start:gl.start, tot:0, cur:''},{run:{km:gl.km, min:gl.min, pts:gl.pts, paused:gl.paused}, at:gl.at});
+  return {k, live, title:a.title||((!st.sets&&(own||gl)&&!planFor(k).run)? 'Carrera' : sm.title), end:a.end||null, dur:a.dur||0, sets:st.sets, vol:Math.round(st.vol), run:own? {km:own, min:+L.run.min||0} : null, rpe:sm.rpe||0, P:mus.P, S:mus.S, ex, note:a.note||'', photo:a.photo||null};
 }
 async function publishShares(){
   if(!socOn()||mode!=='db') return;
@@ -3223,7 +3249,8 @@ function renderAmigos(){
   if(!SOC.loaded){ if(!SOC.loading) socLoad(); return h+'<p class="hint anim" style="--i:1">Cargando…</p>' }
   if(SOC.err) h+='<p class="food-alert anim" style="--i:1">'+ICON.warn+'<span>'+esc(SOC.err)+'</span></p>';
   if(!SOC.me) h+='<section class="card me-card anim" style="--i:1"><h2>Elige tu nombre de usuario</h2><p class="hint">Es como te encontrarán tus amigos. De 3 a 20 letras, números, punto o guion bajo.</p><label class="field"><span>Nombre de usuario</span><input id="soc-user" data-keep maxlength="20" autocapitalize="off" autocomplete="username" spellcheck="false" placeholder="fran.runner"></label><p class="err" id="soc-err" hidden></p><button class="btn primary sm" data-act="soc-user-save">Guardar</button></section>';
-  else h+='<section class="card me-card anim" style="--i:1"><div class="fh">'+'<span class="avatar"><span>'+esc(initial())+'</span></span><div><span class="me-user">@'+esc(SOC.me.username)+'</span><p class="hint">Pasa tu usuario a tus amigos para que te sigan.</p></div></div>'
+  else h+='<section class="card me-card anim" style="--i:1"><div class="fh">'+miniAvatar(uidV)+'<div><span class="me-user">@'+esc(SOC.me.username)+'</span><p class="hint">Pasa tu usuario a tus amigos para que te sigan.</p></div></div>'
+    +'<div class="row-actions" style="margin-top:0">'+photoBtn('avatar',S.profile.photo? 'Cambiar foto de perfil' : 'Poner foto de perfil')+'</div>'
     +'<div class="tiles" style="margin-top:0">'+tile('Seguidores',SOC.followers.length)+tile('Siguiendo',SOC.following.length)+tile('Solicitudes',SOC.pendingIn.length)+'</div>'
     +'<label class="switch"><input type="checkbox" id="soc-share"'+(shareOn()?' checked':'')+'><span>Compartir mis entrenos, mi racha y mis kilómetros con mis seguidores</span></label>'
     +'<p class="hint">Solo los ven las personas que aceptas. Las carreras importadas de Strava no se comparten: Strava no lo permite.</p></section>';
@@ -3300,14 +3327,123 @@ function stravaCard(){
     +'<p class="hint">'+(c? 'Tus carreras de Strava se importan solas al abrir la app'+(S.strava.last? ' (última vez: '+fmtShort(S.strava.last)+')' : '')+'. Si tu reloj Garmin sube a Strava, también llegan aquí.' : 'Conecta tu cuenta y Serevix importará tus carreras con distancia, ritmo, pulso, desnivel y ruta. Si tu Garmin sube a Strava, también llegan aquí.')+'</p>'
     +'<div class="row-actions">'+(c? '<button class="btn primary sm" data-act="strava-sync">Sincronizar ahora</button><button class="btn ghost sm" data-act="strava-off">Desconectar</button>' : '<button class="btn strava-btn sm" data-act="strava-on">Conectar con Strava</button>')+'</div></section>';
 }
+/* ---------- carrera con GPS en directo ---------- */
+const GPSK='srx-gps';
+let GPS=null, gpsWatch=null, gpsWake=null, gpsTick=null, gpsLastShare=0, gpsSaveT=0;
+const fmtKm2=n=>(Math.floor(Math.max(0,+n||0)*100)/100).toFixed(2).replace('.',',');
+function gpsActive(k){ return !!(GPS&&GPS.on&&GPS.k===(k||todayKey())) }
+function gpsElapsed(){ if(!GPS) return 0; const now=Date.now(); return Math.max(0, now-GPS.t0-GPS.pausedMs-(GPS.paused? now-GPS.pauseAt : 0)) }
+function gpsSave(force){ const now=Date.now(); if(!force&&now-gpsSaveT<4000) return; gpsSaveT=now; try{ if(GPS) localStorage.setItem(GPSK, JSON.stringify(Object.assign({},GPS,{uid:uidV||'local', saved:now}))); else localStorage.removeItem(GPSK) }catch(e){} }
+function gpsDist(a,b){ const R=6371000, tr=Math.PI/180, dLa=(b[0]-a[0])*tr, dLo=(b[1]-a[1])*tr, x=Math.sin(dLa/2)**2+Math.cos(a[0]*tr)*Math.cos(b[0]*tr)*Math.sin(dLo/2)**2; return 2*R*Math.asin(Math.min(1,Math.sqrt(x))) }
+function gpsPts(max){ const p=(GPS&&GPS.pts)||[]; let out=p; if(p.length>max){ const st=p.length/max; out=[]; for(let i=0;i<max;i++) out.push(p[Math.floor(i*st)]); out.push(p[p.length-1]) } return out.map(x=>[x[0],x[1]]) }
+function gpsLiveFor(k){ if(!gpsActive(k)) return null; return {km:round2(GPS.km), min:round2(gpsElapsed()/60000), at:GPS.at||GPS.t0, start:GPS.t0, pts:gpsPts(120), paused:!!GPS.paused} }
+function gpsOnPos(pos){
+  if(!GPS||!GPS.on) return;
+  const c=pos.coords, acc=+c.accuracy||999, q=[Math.round(c.latitude*1e5)/1e5, Math.round(c.longitude*1e5)/1e5], t=pos.timestamp||Date.now();
+  GPS.acc=acc; GPS.sig=Date.now();
+  if(GPS.paused||acc>40){ gpsUi(); return }
+  const L=GPS.last;
+  if(!L){ GPS.last=[q[0],q[1],t]; if(!GPS.pts.length) GPS.pts.push([q[0],q[1]]); gpsUi(); return }
+  const d=gpsDist(L,q), dt=Math.max(0.5,(t-L[2])/1000);
+  if(d<Math.max(4,acc*0.25)){ gpsUi(); return }
+  if(d/dt>9){ GPS.last=[q[0],q[1],t]; gpsUi(); return }
+  GPS.km+=d/1000; GPS.last=[q[0],q[1],t]; GPS.at=Date.now();
+  const lp=GPS.pts[GPS.pts.length-1]; if(!lp||gpsDist(lp,q)>=12){ GPS.pts.push([q[0],q[1]]); if(GPS.pts.length>4000) GPS.pts=GPS.pts.filter((_,i)=>i%2===0) }
+  gpsSave(); gpsUi();
+}
+function gpsOnErr(e){
+  if(e&&e.code===1){ gpsKill(); ui.freeRun=false; render(); toast('Serevix necesita tu ubicación para medir la carrera. Actívala en Ajustes del iPhone › Privacidad › Localización.'); return }
+  gpsUi();
+}
+function gpsWatchStart(){ if(gpsWatch!=null) return; try{ gpsWatch=navigator.geolocation.watchPosition(gpsOnPos,gpsOnErr,{enableHighAccuracy:true, maximumAge:0, timeout:30000}) }catch(e){ gpsWatch=null } }
+function gpsWakeOn(){ try{ if(!gpsWake&&'wakeLock' in navigator&&document.visibilityState==='visible') navigator.wakeLock.request('screen').then(w=>{ gpsWake=w; w.addEventListener('release',()=>{ gpsWake=null }) }).catch(()=>{}) }catch(e){} }
+function gpsWakeOff(){ try{ if(gpsWake) gpsWake.release() }catch(e){} gpsWake=null }
+function gpsTickStart(){ clearInterval(gpsTick); gpsTick=setInterval(()=>{ gpsUi(); if(Date.now()-gpsLastShare>20000){ gpsLastShare=Date.now(); scheduleShare() } },1000) }
+function gpsStart(){
+  if(!('geolocation' in navigator)){ toast('Este móvil no deja usar el GPS desde la app.'); return }
+  const now=Date.now();
+  GPS={on:true, paused:false, k:todayKey(), t0:now, pausedMs:0, pauseAt:0, km:0, pts:[], last:null, at:now, acc:null, sig:0, target:0};
+  ui.freeRun=true; gpsWatchStart(); gpsWakeOn(); gpsTickStart(); gpsSave(true); gpsLastShare=now; skipKeep=true; render(); scheduleShare();
+  toast('¡A correr! Deja Serevix abierta mientras corres.');
+}
+function gpsResume(){
+  if(GPS) return; let g=null; try{ g=JSON.parse(localStorage.getItem(GPSK)||'null') }catch(e){}
+  if(!g||!g.on) return;
+  if(g.uid!==(uidV||'local')||g.k!==todayKey()||Date.now()-(+g.saved||0)>3*3600e3){ try{ localStorage.removeItem(GPSK) }catch(e){} return }
+  GPS=g; delete GPS.uid; delete GPS.saved; GPS.pts=Array.isArray(GPS.pts)? GPS.pts : [];
+  ui.freeRun=true; gpsWatchStart(); if(!GPS.paused) gpsWakeOn(); gpsTickStart(); render(); toast('Seguimos midiendo tu carrera');
+}
+function gpsPause(){ if(!GPS||GPS.paused) return; GPS.paused=true; GPS.pauseAt=Date.now(); GPS.last=null; gpsWakeOff(); gpsSave(true); scheduleShare(); render() }
+function gpsResumeRun(){ if(!GPS||!GPS.paused) return; GPS.pausedMs+=Date.now()-GPS.pauseAt; GPS.paused=false; GPS.pauseAt=0; gpsWakeOn(); gpsSave(true); scheduleShare(); render() }
+function gpsKill(){
+  if(gpsWatch!=null){ try{ navigator.geolocation.clearWatch(gpsWatch) }catch(e){} } gpsWatch=null;
+  clearInterval(gpsTick); gpsTick=null; gpsWakeOff(); GPS=null; gpsSave(true);
+  const pill=document.getElementById('gps-pill'); if(pill) pill.hidden=true;
+}
+function gpsFinish(){
+  if(!GPS) return;
+  if(GPS.paused){ GPS.pausedMs+=Date.now()-GPS.pauseAt; GPS.paused=false }
+  const k=GPS.k, km=round2(GPS.km), min=round2(gpsElapsed()/60000), route=gpsPts(300);
+  gpsKill();
+  if(!(km>=0.05)){ ui.freeRun=false; skipKeep=true; render(); scheduleShare(); toast('No se registró distancia. Comprueba que Serevix puede usar tu ubicación.'); return }
+  const L=ensureDay(k), prev=L.run, p=planFor(k), dp=S.days[p.dow].run;
+  const r={km, min, src:'gps', file:'Carrera con GPS', route:route.length>1? route : null, splits:[]};
+  if(prev){ r.target=prev.target||0; r.tpace=prev.tpace||0; if(prev.rpe) r.rpe=prev.rpe; if(prev.rate) r.rate=prev.rate; if(prev.calib) r.calib=true; if(prev.kind) r.kind=prev.kind }
+  else { r.target=dp? dp.km : 0; r.tpace=dp&&dp.pace? dp.pace : 0 }
+  r.kind=r.kind||(dp? dp.kind : 'Libre');
+  L.run=r; pruneRoutes(); const msg=applyRunProgress(k);
+  ui.editRun=false; ui.freeRun=false; skipKeep=true; commit(); toast(msg&&msg!=='Carrera guardada'? msg : 'Carrera guardada: '+fmtKm2(km)+' km'); if(!rpeOf(L.run)) openRpe('run');
+}
+function gpsUi(){
+  if(!GPS) return;
+  const el=gpsElapsed(), km=GPS.km, pace=km>=0.05? (el/60000)/km : 0;
+  const set=(id,v)=>{ const e=document.getElementById(id); if(e&&e.textContent!==v) e.textContent=v };
+  set('gps-km',fmtKm2(km)); set('gps-time',fmtDur(el/60000)); set('gps-pace',pace? fmtPace(pace) : '—');
+  const ok=GPS.sig&&Date.now()-GPS.sig<15000;
+  set('gps-sig', GPS.paused? 'En pausa' : !ok? 'Buscando señal GPS…' : (GPS.acc>40? 'Señal GPS débil' : 'Señal GPS buena'));
+  const bar=document.getElementById('gps-bar'); if(bar&&GPS.target>0) bar.style.width=Math.min(100,km/GPS.target*100).toFixed(1)+'%';
+  let pill=document.getElementById('gps-pill');
+  if(!pill){ pill=document.createElement('a'); pill.id='gps-pill'; pill.className='gps-pill'; pill.href='#hoy'; pill.setAttribute('aria-label','Volver a tu carrera'); document.body.appendChild(pill) }
+  const show=currentTab()!=='hoy'; pill.hidden=!show;
+  if(show){ const v='<i></i><b>'+fmtKm2(km)+' km</b><span>'+fmtDur(el/60000)+'</span>'; if(pill.innerHTML!==v) pill.innerHTML=v }
+}
+function gpsStartHtml(k){
+  if(!('geolocation' in navigator)||k!==todayKey()) return '';
+  return '<button class="btn run block gps-go" data-act="gps-start"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>Correr con GPS en directo</button><p class="hint gps-or">Tus amigos verán tus kilómetros al momento. O apunta la carrera a mano:</p>';
+}
+function gpsLiveHtml(k,target){
+  GPS.target=target||0;
+  const el=gpsElapsed(), km=GPS.km, pace=km>=0.05? (el/60000)/km : 0;
+  return '<div class="gps-live"><div class="gps-top"><span class="tag live"><i></i>'+(GPS.paused? 'En pausa' : 'En directo')+'</span><span class="hint" id="gps-sig">Buscando señal GPS…</span></div>'
+    +'<div class="gps-km"><span id="gps-km">'+fmtKm2(km)+'</span><small>km</small></div>'
+    +'<div class="gps-stats"><div><span>Tiempo</span><b id="gps-time">'+fmtDur(el/60000)+'</b></div><div><span>Ritmo medio</span><b id="gps-pace">'+(pace? fmtPace(pace) : '—')+'</b></div>'+(target>0? '<div><span>Objetivo</span><b>'+fmtKm(target)+' km</b></div>' : '')+'</div>'
+    +(target>0? '<div class="live-bar"><i id="gps-bar" style="width:'+Math.min(100,km/target*100).toFixed(1)+'%"></i></div>' : '')
+    +'<p class="hint">Tus amigos ven tus kilómetros en directo. Deja Serevix abierta: si bloqueas el iPhone, el GPS se para. La pantalla se queda encendida sola.</p>'
+    +'<div class="row-actions">'+(GPS.paused? '<button class="btn ghost" data-act="gps-resume">Reanudar</button>' : '<button class="btn ghost" data-act="gps-pause">Pausar</button>')+'<button class="btn run" style="flex:1" data-act="gps-stop">Terminar carrera</button></div>'
+    +'<button class="link gps-discard" data-act="gps-discard">Descartar esta carrera</button></div>';
+}
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&GPS&&GPS.on&&!GPS.paused) gpsWakeOn() });
+window.addEventListener('hashchange',()=>{ if(GPS) gpsUi() });
+
 /* ---------- Muro en directo ---------- */
 let socCh=null, socPollT=null, socRT=null;
 function fmtHM(ts){ try{ return new Date(+ts).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}) }catch(e){ return '' } }
 function agoTxt(ts){ const m=Math.floor((Date.now()-(+ts||0))/60000); return !(m>=1)? 'ahora mismo' : m<60? 'hace '+m+' min' : 'hace '+Math.floor(m/60)+' h' }
-function isLive(f){ return !!(f&&f.live&&typeof f.live==='object'&&!f.end&&f.k===todayKey()&&(+f.sets||0)>0&&Date.now()-(+f.live.at||Date.parse(f.upd)||0)<90*60e3) }
+function isLive(f){ return !!(f&&f.live&&typeof f.live==='object'&&!f.end&&f.k===todayKey()&&((+f.sets||0)>0||!!(f.live.run&&typeof f.live.run==='object'))&&Date.now()-(+f.live.at||Date.parse(f.upd)||0)<90*60e3) }
 function liveBar(f){
-  const L=f.live||{}, d=+f.sets||0, tot=Math.max(+L.tot||0,d), pc=tot? Math.min(100,d/tot*100) : 0, at=+L.at||Date.parse(f.upd)||Date.now();
-  return '<div class="live-box"><div class="live-row"><b>'+fmtInt(d)+' de '+fmtInt(tot)+' series</b><span>'+(L.cur? esc(String(L.cur).slice(0,40))+' · ' : '')+esc(agoTxt(at))+'</span></div><div class="live-bar"><i style="width:'+pc.toFixed(0)+'%"></i></div>'+(+L.start? '<p class="hint">Empezó a las '+esc(fmtHM(+L.start))+'</p>' : '')+'</div>';
+  const L=f.live||{}, at=+L.at||Date.parse(f.upd)||Date.now(), R=(L.run&&typeof L.run==='object')? L.run : null;
+  let h='<div class="live-box">';
+  if(R){
+    const km=Math.max(0,+R.km||0), mn=Math.max(0,+R.min||0), pace=km>=0.05? mn/km : 0;
+    h+='<div class="live-run"><div class="lr-km"><b>'+fmtKm2(km)+'</b><small>km</small></div><div class="lr-st"><span>'+(R.paused? 'En pausa' : 'Corriendo')+' · '+esc(agoTxt(at))+'</span><span>'+fmtDur(mn)+(pace? ' · '+fmtPace(pace)+' /km' : '')+'</span></div></div>';
+    const pts=Array.isArray(R.pts)? R.pts.filter(q=>Array.isArray(q)&&typeof q[0]==='number'&&typeof q[1]==='number'&&isFinite(q[0])&&isFinite(q[1])).slice(0,400) : [];
+    if(pts.length>1) h+=routeSvg(pts);
+  }
+  const d=+f.sets||0;
+  if(d>0){ const tot=Math.max(+L.tot||0,d), pc=tot? Math.min(100,d/tot*100) : 0;
+    h+='<div class="live-row"><b>'+fmtInt(d)+' de '+fmtInt(tot)+' series</b><span>'+(L.cur? esc(String(L.cur).slice(0,40))+' · ' : '')+(R? '' : esc(agoTxt(at)))+'</span></div><div class="live-bar"><i style="width:'+pc.toFixed(0)+'%"></i></div>' }
+  if(+L.start) h+='<p class="hint">Empezó a las '+esc(fmtHM(+L.start))+'</p>';
+  return h+'</div>';
 }
 function socSeenKey(){ return 'srx-soc-seen-'+(uidV||'') }
 function socSeen(){ try{ return +localStorage.getItem(socSeenKey())||0 }catch(e){ return 0 } }
@@ -3322,11 +3458,13 @@ function ownPosts(){
 function muroMe(){
   const k=todayKey(), L=S.log.days[k], st=L? logStats(L) : null, a=(L&&L.act)||{};
   let body, btn='';
-  if(!SOC.me) body='Elige tu nombre de usuario en <a class="link" href="#amigos">Amigos</a> para que tus amigos te encuentren.';
+  if(gpsActive(k)){ body='Estás corriendo en directo: tus amigos ven tus kilómetros al momento.'; btn='<a class="btn primary sm" href="#hoy">Ver mi carrera</a>' }
+  else if(!SOC.me) body='Elige tu nombre de usuario en <a class="link" href="#amigos">Amigos</a> para que tus amigos te encuentren.';
   else if(!shareOn()) body='No estás compartiendo tus entrenos. Actívalo en <a class="link" href="#amigos">Amigos</a>.';
   else if(!st||!st.trained) body='Cuando marques tu primera serie, tus amigos lo verán aquí en directo.';
   else if(!a.end){ body='Tus amigos ven tu entreno en directo: llevas '+fmtInt(st.sets)+' serie'+(st.sets==1?'':'s')+'. Al terminar, publícalo con una foto.'; btn='<button class="btn primary sm" data-act="fin-day">'+ICON.flag+'Finalizar y publicar</button>' }
   else { body=a.photo? 'Tu entreno de hoy ya está publicado con su foto.' : 'Tu entreno de hoy está publicado. Añádele una foto para tus amigos.'; btn=photoBtn('act:'+k, a.photo? 'Cambiar foto' : 'Añadir foto') }
+  if(!S.profile.photo) btn+=photoBtn('avatar','Poner foto de perfil');
   return '<section class="card me-card anim" style="--i:1"><div class="fh">'+miniAvatar(uidV)+'<div><b>Tu entreno de hoy</b><p class="hint">'+body+'</p></div></div>'+(btn? '<div class="row-actions">'+btn+'</div>' : '')+'</section>';
 }
 function renderMuro(){
@@ -3414,6 +3552,11 @@ const A={
   'close-sheet':()=>closeSheet(),
   'settings':()=>openSettings(),
   'logout':()=>{ signOutLocal(false) },
+  'gps-start':()=>gpsStart(),
+  'gps-pause':()=>gpsPause(),
+  'gps-resume':()=>gpsResumeRun(),
+  'gps-stop':el=>{ if(!armed(el,'Toca otra vez para terminar')) return; gpsFinish() },
+  'gps-discard':el=>{ if(!armed(el,'Toca otra vez para descartarla')) return; gpsKill(); ui.freeRun=false; skipKeep=true; scheduleShare(); render(); toast('Carrera descartada') },
   'soc-refresh':()=>{ SOC.loaded=false; socLoad(); render() },
   'soc-user-save':async()=>{ const inp=document.getElementById('soc-user'), er=document.getElementById('soc-err'), u=String(inp&&inp.value||'').trim().toLowerCase(); const fail=m=>{ if(er){ er.textContent=m; er.hidden=false } };
     if(!/^[a-z0-9_.]{3,20}$/.test(u)) return fail('Usa de 3 a 20 letras, números, punto o guion bajo, sin espacios ni tildes.');

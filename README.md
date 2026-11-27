@@ -49,6 +49,8 @@ Funciona en cuanto ejecutes `supabase/schema.sql`, que ya incluye las tablas de 
 - En **Social › Amigos** (la pestaña de abajo a la derecha) cada persona elige su nombre de usuario, busca a sus amigos y les manda una solicitud.
 - Cuando la otra persona acepta, ves sus entrenos, su racha, su nivel y sus kilómetros.
 - En **Social › Muro** ves a tus amigos **en directo** mientras entrenan (serie a serie, al momento) y sus publicaciones con foto y comentario cuando terminan. Si llega algo nuevo, sale un punto en la pestaña Social.
+- **Correr en directo:** en Hoy, en la tarjeta de carrera, pulsa **«Correr con GPS en directo»**. El móvil mide los kilómetros, el tiempo, el ritmo y la ruta, y tus amigos lo ven en el Muro mientras corres. Deja Serevix abierta: en el iPhone el GPS de una app web se para si bloqueas la pantalla (la app la mantiene encendida sola).
+- La foto de perfil se pone en **Social › Amigos** (o en Perfil) y la ven tus amigos.
 - Cada uno decide si comparte (interruptor en Amigos). Solo lo ven los seguidores aceptados.
 
 ### 7. Strava (y Garmin a través de Strava)
