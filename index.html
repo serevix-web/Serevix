@@ -3008,7 +3008,8 @@ function lgErr(msg){ const er=document.getElementById('lg-err'); if(er){ er.text
 function authMsg(e){ const m=String((e&&e.message)||''); if(/invalid login/i.test(m)) return 'Correo o contraseña incorrectos.'; if(/already registered|already exists/i.test(m)) return 'Ya hay una cuenta con ese correo. Entra con tu contraseña.'; if(/password/i.test(m)&&/6|short|weak/i.test(m)) return 'Elige una contraseña más larga (mínimo 6 caracteres).'; if(/rate|too many/i.test(m)) return 'Demasiados intentos. Espera un minuto y vuelve a probar.'; if(/fetch|network|load failed/i.test(m)) return 'Sin conexión. Revisa tu internet y vuelve a probar.'; return 'No se pudo entrar: '+m.slice(0,120) }
 async function startSession(user,name){
   uEmail=user.email||''; LS_KEY='srx-state-'+user.id;
-  const l=readLocal(); S=normalize(l||defaultState());
+  let l=readLocal(); if(!l){ try{ const x=JSON.parse(localStorage.getItem('srx-state-local')||'null'); if(x&&x.v&&x.exercises) l=x }catch(e){} }
+  S=normalize(l||defaultState());
   if(!S.profile.name) S.profile.name=String(name||(user.user_metadata&&user.user_metadata.name)||'').replace(/\s+/g,' ').trim().slice(0,30);
   pendingName=null;
   writeLocal(); mode='loading';
