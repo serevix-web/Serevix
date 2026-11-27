@@ -55,8 +55,9 @@ svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke
 @keyframes spin3d{from{transform:rotateX(-26deg) rotateY(0)}to{transform:rotateX(-26deg) rotateY(360deg)}}
 .brand-txt{display:flex;flex-direction:column;line-height:1.1;min-width:0}
 .mark{font-family:var(--f-display);font-weight:700;font-size:20px;letter-spacing:.24em;text-transform:uppercase;background:linear-gradient(90deg,#fff 0%,var(--lila-hi) 45%,var(--lila) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;white-space:nowrap}
-.sync{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sync{display:none!important;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sync::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--dim);flex:none}
+.sync[data-s="offline"]{display:flex!important}
 .sync[data-s="saved"]::before{background:var(--lila);box-shadow:0 0 8px var(--lila)}
 .sync[data-s="saving"]::before{background:var(--lila-hi)}
 .sync[data-s="local"]::before,.sync[data-s="offline"]::before{background:#fff}
@@ -415,7 +416,7 @@ input[type="checkbox"]{width:22px;height:22px;padding:0;flex:none;accent-color:v
 
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:25;background:rgba(0,0,0,.92);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-top:1px solid #1A1822;padding-bottom:env(safe-area-inset-bottom,0px)}
 .tabs::before{content:"";position:absolute;left:10%;right:10%;top:-1px;height:1px;background:linear-gradient(90deg,transparent,var(--lila-line),transparent)}
-.tabs-in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));height:var(--tabh);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.tabs-in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));height:var(--tabh);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--dim);text-decoration:none;font-size:11px;font-weight:700;letter-spacing:.02em;position:relative;transition:color .2s}
 .tab svg.i{width:23px;height:23px;transition:transform .25s cubic-bezier(.2,.8,.2,1)}
 .tab[aria-current="page"]{color:var(--lila)}
@@ -847,6 +848,7 @@ img{max-width:100%}
 .btn.lt-btn{background:#fff;color:#000}
 .lt-link{display:inline-block;margin:8px 0 4px}
 .lt-steps{margin:4px 0 12px;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:1.45}
+.tabs-in .tab span{white-space:nowrap}
 .seg-n{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;margin-left:6px;border-radius:9px;background:var(--lila);color:var(--on-lila);font-size:11px;font-weight:800}
 .lg-f{display:flex;flex-direction:column;gap:12px}
 .lg-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:14px;background:var(--surface-2);border:1px solid var(--line)}
@@ -886,6 +888,7 @@ img{max-width:100%}
 <nav class="tabs" aria-label="Secciones">
   <div class="tabs-in">
     <a class="tab" href="#hoy" data-tab="hoy"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4M9 14.5l2 2 4-4"/></svg><span>Hoy</span></a>
+    <a class="tab" href="#retos" data-tab="retos"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0V4z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M9 20.5h6M10 17h4"/></svg><span>Retos</span><i class="tab-dot" id="retos-dot" hidden></i></a>
     <a class="tab" href="#comida" data-tab="comida"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10M17 21V3c-2.2 0-4 2.5-4 6v4h4"/></svg><span>Comida</span></a>
     <a class="tab" href="#perfil" data-tab="perfil" id="tab-perfil"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20.5c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><span>Perfil</span></a>
     <a class="tab" href="#muro" data-tab="social" id="tab-social"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.4"/><path d="M2.8 20c.9-3.6 3.3-5.6 6.2-5.6s5.3 2 6.2 5.6"/><circle cx="16.8" cy="9" r="2.7"/><path d="M16 14.5c2.6-.3 4.5 1.4 5.3 4.6"/></svg><span>Social</span><i class="tab-dot" id="tab-dot" hidden></i></a>
@@ -1985,13 +1988,13 @@ const NPC=(function(){
 /* ---------- vistas ---------- */
 const view=document.getElementById('view');
 let skipKeep=false, lastTab=null;
-const SUBS=['rutina','actividades','calendario','km','graficos','analisis','retos'];
+const SUBS=['rutina','actividades','calendario','km','graficos','analisis'];
 const SOCS=['muro','amigos','strava'];
-const PAGES=['hoy','comida'].concat(SUBS,SOCS);
+const PAGES=['hoy','retos','comida'].concat(SUBS,SOCS);
 const PAGE_NAME={hoy:'Hoy', comida:'Comida', rutina:'Rutina', actividades:'Actividades', amigos:'Amigos', strava:'Strava', muro:'Muro', calendario:'Calendario', km:'Km', graficos:'Gráficos', analisis:'Análisis', retos:'Retos'};
 const LEGACY={plan:'rutina', progreso:'graficos'};
 function currentTab(){ let h=(location.hash||'').slice(1); h=LEGACY[h]||h; if(h==='perfil') return ui.sub||'rutina'; if(h==='social') return ui.soc||'muro'; return PAGES.includes(h)? h : 'hoy' }
-function screenOf(t){ return (t==='hoy'||t==='comida')? t : SOCS.includes(t)? 'social' : 'perfil' }
+function screenOf(t){ return (t==='hoy'||t==='comida'||t==='retos')? t : SOCS.includes(t)? 'social' : 'perfil' }
 function initial(){ const n=(S.profile&&S.profile.name)||''; return n? n.charAt(0).toUpperCase() : 'S' }
 function captureInputs(){ const m={}; view.querySelectorAll('[data-keep]').forEach(el=>{ if(el.id) m[el.id]=el.value }); const a=document.activeElement; return {m, focus:(a&&a.id&&view.contains(a))? a.id : null} }
 function restoreInputs(s){
@@ -2015,7 +2018,7 @@ function render(){
     ui.headAnim=swap; lastTab=tab;
     if(!RM){ view.classList.remove('enter','slide-fwd','slide-back'); void view.offsetWidth; view.classList.add('enter'); if(swap&&had) view.classList.add(dir); else if(!swap) subSlide=dir; clearTimeout(enterT); enterT=setTimeout(()=>view.classList.remove('enter','slide-fwd','slide-back'),1300) }
   }
-  view.innerHTML= tab==='hoy'? renderToday() : tab==='comida'? renderFood() : SOCS.includes(tab)? renderSocial(tab) : renderProfile(tab);
+  view.innerHTML= tab==='hoy'? renderToday() : tab==='retos'? renderRetosPage() : tab==='comida'? renderFood() : SOCS.includes(tab)? renderSocial(tab) : renderProfile(tab);
   if(subSlide){ const sb=document.getElementById('sub-body'); if(sb) sb.classList.add(subSlide) }
   ui.flip=null;
   restoreInputs(keep);
@@ -2025,7 +2028,7 @@ function render(){
   document.getElementById('streak-chip').classList.toggle('hot',st>=3);
   setTopAvatar();
   document.getElementById('tab-perfil').setAttribute('href','#'+ui.sub);
-  document.getElementById('tab-social').setAttribute('href','#'+(ui.soc||'muro')); socDot();
+  document.getElementById('tab-social').setAttribute('href','#'+(ui.soc||'muro')); socDot(); retosDot();
   const scr=screenOf(tab);
   document.querySelectorAll('.tab').forEach(a=>{ if(a.dataset.tab===scr) a.setAttribute('aria-current','page'); else a.removeAttribute('aria-current') });
   const ac=view.querySelector('.seg a[aria-current]'); if(ac){ const sg=ac.parentNode; sg.scrollLeft=Math.max(0,ac.offsetLeft-(sg.clientWidth-ac.offsetWidth)/2) }
@@ -2640,7 +2643,7 @@ function foodScore(k){
 function isTreatDay(k){ const tr=S.food.treats[mondayOf(k)]; return !!(tr&&tr.day===k) }
 function dayGood(k){ if(isTreatDay(k)&&k<=todayKey()) return true; const sc=foodScore(k); return sc!=null&&sc>=70 }
 function weekGood(mon){ let n=0; for(let i=0;i<7;i++) if(dayGood(addDays(mon,i))) n++; return n }
-function rewardEarned(mon){ return weekGood(addDays(mon,-7))>=5 }
+function rewardEarned(mon){ return weekGood(addDays(mon,-7))>=7 }
 function macroBar(label,v,tgt,lo,hi,st,msg){ const max=tgt*1.6||1, w=Math.min(100,v/max*100), zl=lo*tgt/max*100, zw=(hi-lo)*tgt/max*100; return '<div class="mb mb-'+st+'"><div class="mb-top"><span>'+label+'</span><b>'+fmtInt(v)+' / '+fmtInt(tgt)+' g</b></div><div class="mb-track"><span class="mb-zone" style="left:'+zl.toFixed(1)+'%;width:'+zw.toFixed(1)+'%"></span><span class="mb-fill" style="width:'+w.toFixed(1)+'%"></span></div><p class="mb-msg">'+esc(msg)+'</p></div>' }
 function ringSvg(v,tgt){ const r=46, C=2*Math.PI*r, pct=tgt? v/tgt : 0; return '<svg class="ring" viewBox="0 0 120 120" role="img" aria-label="'+fmtInt(v)+' de '+fmtInt(tgt)+' kilocalorías"><circle class="rb" cx="60" cy="60" r="46"/><circle class="rf'+(pct>1.15?' over':'')+'" cx="60" cy="60" r="46" stroke-dasharray="'+(C*Math.min(1,pct)).toFixed(1)+' '+C.toFixed(1)+'" transform="rotate(-90 60 60)"/><text class="rv" x="60" y="62">'+fmtInt(v)+'</text><text class="rl" x="60" y="78">de '+fmtInt(tgt)+' kcal</text></svg>' }
 function evalDay(k,live){
@@ -2699,8 +2702,8 @@ function foodWeekHtml(){
   const t=todayKey(), mon=mondayOf(t), good=weekGood(mon), earned=rewardEarned(mon), tr=S.food.treats[mon];
   let dots='';
   for(let i=0;i<7;i++){ const d=addDays(mon,i), sc=foodScore(d), td=isTreatDay(d), cls=td? 'tr' : sc==null? (d>t? 'fut' : 'none') : sc>=70? 'good' : sc>=50? 'mid' : 'bad'; dots+='<span class="fw-d '+cls+(d===t?' today':'')+'" title="'+esc(fmtLong(d))+(sc!=null? ': '+sc+' puntos' : '')+'"><i>'+DOW_LETTER[parseKey(d).getDay()]+'</i>'+(td? '★' : sc!=null? sc : '·')+'</span>' }
-  let h='<section class="card week-food anim" style="--i:7"><div class="sec-head"><h2>Tu semana comiendo</h2><span class="tag lila">'+Math.min(good,7)+'/5 días buenos</span></div><div class="fw-row">'+dots+'</div><div class="pbar"><i style="width:'+Math.min(100,good/5*100).toFixed(0)+'%"></i></div>';
-  h+='<p class="hint">'+(good>=5? '¡Conseguido! La semana que viene podrás elegir un capricho para un día.' : 'Te faltan '+(5-good)+' día'+(5-good==1?'':'s')+' buenos para ganar un capricho la semana que viene.')+'</p>';
+  let h='<section class="card week-food anim" style="--i:7"><div class="sec-head"><h2>Tu semana comiendo</h2><span class="tag lila">'+Math.min(good,7)+'/7 días buenos</span></div><div class="fw-row">'+dots+'</div><div class="pbar"><i style="width:'+Math.min(100,good/7*100).toFixed(0)+'%"></i></div>';
+  h+='<p class="hint">'+(good>=7? '¡Conseguido! La semana que viene podrás elegir un capricho para un día.' : 'Te faltan '+(7-good)+' día'+(7-good==1?'':'s')+' buenos para ganar un capricho la semana que viene.')+'</p>';
   if(earned){
     if(tr) h+='<div class="treat-ok">'+ICON.spark+'<div><strong>Tu capricho: '+esc(tr.treat)+'</strong><span>'+esc(cap(dfLong.format(parseKey(tr.day))))+'</span></div>'+(tr.day>t? '<button class="link" data-act="treat-change">Cambiar</button>' : '')+'</div>';
     else { const days=[]; for(let i=0;i<7;i++){ const d=addDays(mon,i); if(d>=t) days.push(d) }
@@ -3336,6 +3339,13 @@ function stravaCard(){
     +'<p class="hint">'+(c? 'Tus carreras de Strava se importan solas al abrir la app'+(S.strava.last? ' (última vez: '+fmtShort(S.strava.last)+')' : '')+'. Si tu reloj Garmin sube a Strava, también llegan aquí.' : 'Conecta tu cuenta y Serevix importará tus carreras con distancia, ritmo, pulso, desnivel y ruta. Si tu Garmin sube a Strava, también llegan aquí.')+'</p>'
     +'<div class="row-actions">'+(c? '<button class="btn primary sm" data-act="strava-sync">Sincronizar ahora</button><button class="btn ghost sm" data-act="strava-off">Desconectar</button>' : '<button class="btn strava-btn sm" data-act="strava-on">Conectar con Strava</button>')+'</div></section>';
 }
+/* ---------- pestaña Retos ---------- */
+function renderRetosPage(){
+  return '<section class="hero-day anim" style="--i:0"><p class="eyebrow">'+(S.profile.name? 'Hola, '+esc(S.profile.name)+' · ' : '')+'Supera tus marcas</p><h1>Retos</h1></section><div class="sub-body" id="sub-body">'+renderRetos()+'</div>';
+}
+function retosClaimable(){ const k=todayKey(); let n=0; ['d','w','m'].forEach(per=>{ challengesFor(per,k).forEach(c=>{ if(!S.log.claims[c.key]&&c.value>=c.target) n++ }) }); return n }
+function retosDot(){ const d=document.getElementById('retos-dot'); if(!d) return; let n=0; try{ n=screenOf(currentTab())==='retos'? 0 : retosClaimable() }catch(e){} d.hidden=!n }
+
 /* ---------- Garmin LiveTrack ---------- */
 const LT_ICON='<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="2.5"/><path d="M7.8 7.8a6 6 0 0 0 0 8.4M16.2 7.8a6 6 0 0 1 0 8.4M5 5a10 10 0 0 0 0 14M19 5a10 10 0 0 1 0 14"/></svg>';
 function ltUrl(u){
