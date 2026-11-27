@@ -1944,7 +1944,7 @@ const view=document.getElementById('view');
 let skipKeep=false, lastTab=null;
 const SUBS=['rutina','actividades','amigos','calendario','km','graficos','analisis','retos'];
 const PAGES=['hoy','comida'].concat(SUBS);
-const PAGE_NAME={hoy:'Hoy', comida:'Comida', rutina:'Rutina', actividades:'Actividades', amigos:'Amigos', calendario:'Calendario', km:'Km', graficos:'Gráficos', analisis:'Análisis', retos:'Retos'};
+const PAGE_NAME={hoy:'Hoy', comida:'Comida', rutina:'Rutina', actividades:'Actividades', amigos:'Amigos', calendario:'Calendario', km:'Strava', graficos:'Gráficos', analisis:'Análisis', retos:'Retos'};
 const LEGACY={plan:'rutina', progreso:'graficos'};
 function currentTab(){ let h=(location.hash||'').slice(1); h=LEGACY[h]||h; if(h==='perfil') return ui.sub||'rutina'; return PAGES.includes(h)? h : 'hoy' }
 function screenOf(t){ return (t==='hoy'||t==='comida')? t : 'perfil' }

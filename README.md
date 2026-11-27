@@ -60,7 +60,7 @@ Funciona en cuanto ejecutes `supabase/schema.sql`, que ya incluye las tablas de 
    - `STRAVA_CLIENT_ID` con el Client ID.
    - `STRAVA_CLIENT_SECRET` con el Client Secret. El secreto no lo pongas nunca en `config.js` ni se lo pases a nadie.
 4. En Supabase › **Edge Functions › Deploy a new function › Via Editor**: llámala `strava`, pega el contenido de `supabase/functions/strava/index.ts` y pulsa **Deploy**.
-5. En la app: **Perfil › Km › Conectar con Strava**.
+5. En la app: **Perfil › Strava › Conectar con Strava**.
 
 **Garmin:** en la app Garmin Connect activa **Apps conectadas › Strava**. Tus actividades del reloj subirán a Strava y de ahí llegarán a Serevix. La conexión directa con Garmin exige que Garmin apruebe la app en su programa para desarrolladores. Mientras tanto también puedes importar archivos GPX o TCX.
 
