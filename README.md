@@ -46,7 +46,7 @@ Crea tu cuenta en la app y ve a **Perfil › Ajustes › Importar copia**. Elige
 ### 6. Amigos y seguidores
 Funciona en cuanto ejecutes `supabase/schema.sql`, que ya incluye las tablas de amigos. Si ya lo habías ejecutado, vuelve a pegarlo entero y pulsa **Run**: no borra nada.
 
-- En **Perfil › Amigos** cada persona elige su nombre de usuario, busca a sus amigos y les manda una solicitud.
+- En **Social › Amigos** (la pestaña de abajo a la derecha) cada persona elige su nombre de usuario, busca a sus amigos y les manda una solicitud.
 - Cuando la otra persona acepta, ves sus entrenos, su racha, su nivel y sus kilómetros.
 - Cada uno decide si comparte (interruptor en Amigos). Solo lo ven los seguidores aceptados.
 
@@ -60,7 +60,7 @@ Funciona en cuanto ejecutes `supabase/schema.sql`, que ya incluye las tablas de 
    - `STRAVA_CLIENT_ID` con el Client ID.
    - `STRAVA_CLIENT_SECRET` con el Client Secret. El secreto no lo pongas nunca en `config.js` ni se lo pases a nadie.
 4. En Supabase › **Edge Functions › Deploy a new function › Via Editor**: llámala `strava`, pega el contenido de `supabase/functions/strava/index.ts` y pulsa **Deploy**.
-5. En la app: **Perfil › Strava › Conectar con Strava**.
+5. En la app: **Social › Strava › Conectar con Strava**.
 
 **Garmin:** en la app Garmin Connect activa **Apps conectadas › Strava**. Tus actividades del reloj subirán a Strava y de ahí llegarán a Serevix. La conexión directa con Garmin exige que Garmin apruebe la app en su programa para desarrolladores. Mientras tanto también puedes importar archivos GPX o TCX.
 

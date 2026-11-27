@@ -415,7 +415,7 @@ input[type="checkbox"]{width:22px;height:22px;padding:0;flex:none;accent-color:v
 
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:25;background:rgba(0,0,0,.92);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-top:1px solid #1A1822;padding-bottom:env(safe-area-inset-bottom,0px)}
 .tabs::before{content:"";position:absolute;left:10%;right:10%;top:-1px;height:1px;background:linear-gradient(90deg,transparent,var(--lila-line),transparent)}
-.tabs-in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));height:var(--tabh);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.tabs-in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));height:var(--tabh);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--dim);text-decoration:none;font-size:11px;font-weight:700;letter-spacing:.02em;position:relative;transition:color .2s}
 .tab svg.i{width:23px;height:23px;transition:transform .25s cubic-bezier(.2,.8,.2,1)}
 .tab[aria-current="page"]{color:var(--lila)}
@@ -806,6 +806,7 @@ img{max-width:100%}
 .strava-logo{font-family:var(--f-display);font-weight:700;color:#FC4C02;letter-spacing:.12em}
 .btn.strava-btn{background:#FC4C02;color:#fff}
 .strava.off .btn.strava-btn{opacity:.4;cursor:default}
+.seg-n{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;margin-left:6px;border-radius:9px;background:var(--lila);color:var(--on-lila);font-size:11px;font-weight:800}
 .lg-f{display:flex;flex-direction:column;gap:12px}
 .lg-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:14px;background:var(--surface-2);border:1px solid var(--line)}
 .lg-tabs button{min-height:42px;border-radius:10px;font-weight:700;color:var(--muted)}
@@ -846,6 +847,7 @@ img{max-width:100%}
     <a class="tab" href="#hoy" data-tab="hoy"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4M9 14.5l2 2 4-4"/></svg><span>Hoy</span></a>
     <a class="tab" href="#comida" data-tab="comida"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10M17 21V3c-2.2 0-4 2.5-4 6v4h4"/></svg><span>Comida</span></a>
     <a class="tab" href="#perfil" data-tab="perfil" id="tab-perfil"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20.5c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><span>Perfil</span></a>
+    <a class="tab" href="#strava" data-tab="social" id="tab-social"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.4"/><path d="M2.8 20c.9-3.6 3.3-5.6 6.2-5.6s5.3 2 6.2 5.6"/><circle cx="16.8" cy="9" r="2.7"/><path d="M16 14.5c2.6-.3 4.5 1.4 5.3 4.6"/></svg><span>Social</span></a>
   </div>
 </nav>
 
@@ -1942,12 +1944,13 @@ const NPC=(function(){
 /* ---------- vistas ---------- */
 const view=document.getElementById('view');
 let skipKeep=false, lastTab=null;
-const SUBS=['rutina','actividades','amigos','calendario','km','graficos','analisis','retos'];
-const PAGES=['hoy','comida'].concat(SUBS);
-const PAGE_NAME={hoy:'Hoy', comida:'Comida', rutina:'Rutina', actividades:'Actividades', amigos:'Amigos', calendario:'Calendario', km:'Strava', graficos:'Gráficos', analisis:'Análisis', retos:'Retos'};
+const SUBS=['rutina','actividades','calendario','km','graficos','analisis','retos'];
+const SOCS=['strava','amigos'];
+const PAGES=['hoy','comida'].concat(SUBS,SOCS);
+const PAGE_NAME={hoy:'Hoy', comida:'Comida', rutina:'Rutina', actividades:'Actividades', amigos:'Amigos', strava:'Strava', calendario:'Calendario', km:'Km', graficos:'Gráficos', analisis:'Análisis', retos:'Retos'};
 const LEGACY={plan:'rutina', progreso:'graficos'};
-function currentTab(){ let h=(location.hash||'').slice(1); h=LEGACY[h]||h; if(h==='perfil') return ui.sub||'rutina'; return PAGES.includes(h)? h : 'hoy' }
-function screenOf(t){ return (t==='hoy'||t==='comida')? t : 'perfil' }
+function currentTab(){ let h=(location.hash||'').slice(1); h=LEGACY[h]||h; if(h==='perfil') return ui.sub||'rutina'; if(h==='social') return ui.soc||'strava'; return PAGES.includes(h)? h : 'hoy' }
+function screenOf(t){ return (t==='hoy'||t==='comida')? t : SOCS.includes(t)? 'social' : 'perfil' }
 function initial(){ const n=(S.profile&&S.profile.name)||''; return n? n.charAt(0).toUpperCase() : 'S' }
 function captureInputs(){ const m={}; view.querySelectorAll('[data-keep]').forEach(el=>{ if(el.id) m[el.id]=el.value }); const a=document.activeElement; return {m, focus:(a&&a.id&&view.contains(a))? a.id : null} }
 function restoreInputs(s){
@@ -1963,6 +1966,7 @@ function render(){
   const keep=captureInputs();
   const tab=currentTab();
   if(SUBS.includes(tab)) ui.sub=tab;
+  if(SOCS.includes(tab)) ui.soc=tab;
   ui.headAnim=false;
   let subSlide='';
   if(tab!==lastTab){
@@ -1970,7 +1974,7 @@ function render(){
     ui.headAnim=swap; lastTab=tab;
     if(!RM){ view.classList.remove('enter','slide-fwd','slide-back'); void view.offsetWidth; view.classList.add('enter'); if(swap&&had) view.classList.add(dir); else if(!swap) subSlide=dir; clearTimeout(enterT); enterT=setTimeout(()=>view.classList.remove('enter','slide-fwd','slide-back'),1300) }
   }
-  view.innerHTML= tab==='hoy'? renderToday() : tab==='comida'? renderFood() : renderProfile(tab);
+  view.innerHTML= tab==='hoy'? renderToday() : tab==='comida'? renderFood() : SOCS.includes(tab)? renderSocial(tab) : renderProfile(tab);
   if(subSlide){ const sb=document.getElementById('sub-body'); if(sb) sb.classList.add(subSlide) }
   ui.flip=null;
   restoreInputs(keep);
@@ -1980,6 +1984,7 @@ function render(){
   document.getElementById('streak-chip').classList.toggle('hot',st>=3);
   setTopAvatar();
   document.getElementById('tab-perfil').setAttribute('href','#'+ui.sub);
+  document.getElementById('tab-social').setAttribute('href','#'+(ui.soc||'strava'));
   const scr=screenOf(tab);
   document.querySelectorAll('.tab').forEach(a=>{ if(a.dataset.tab===scr) a.setAttribute('aria-current','page'); else a.removeAttribute('aria-current') });
   const ac=view.querySelector('.seg a[aria-current]'); if(ac){ const sg=ac.parentNode; sg.scrollLeft=Math.max(0,ac.offsetLeft-(sg.clientWidth-ac.offsetWidth)/2) }
@@ -2397,7 +2402,7 @@ function renderProfile(sub){
   const es=effortSeries(), em=es.length? avg(es.slice(-6).map(x=>x.v)) : 0;
   h+='<div class="tiles'+a+'" style="--i:3">'+tile('Entrenos',tr)+tile('Km totales',fmtKm(km))+'<div class="tile"><div class="tl">Esfuerzo</div><div class="tv">'+(em? nf1.format(em)+'<small>'+rpeEmoji(em)+'</small>' : '—')+'</div></div></div>';
   h+='<div id="seg-anchor"></div><nav class="seg" aria-label="Secciones del perfil">'+SUBS.map(id=>'<a href="#'+id+'"'+(sub===id?' aria-current="page"':'')+'>'+PAGE_NAME[id]+'</a>').join('')+'</nav>';
-  h+='<div class="sub-body" id="sub-body">'+(sub==='retos'? renderRetos() : sub==='analisis'? renderAnalisis() : sub==='graficos'? renderProgress() : sub==='actividades'? renderActivities() : sub==='calendario'? renderCalendar() : sub==='km'? renderKm() : sub==='amigos'? renderAmigos() : renderPlan())+'</div>';
+  h+='<div class="sub-body" id="sub-body">'+(sub==='retos'? renderRetos() : sub==='analisis'? renderAnalisis() : sub==='graficos'? renderProgress() : sub==='actividades'? renderActivities() : sub==='calendario'? renderCalendar() : sub==='km'? renderKm() : renderPlan())+'</div>';
   return h;
 }
 function tile(l,v,u){ return '<div class="tile"><div class="tl">'+l+'</div><div class="tv">'+v+(u? '<small>'+u+'</small>' : '')+'</div></div>' }
@@ -2523,7 +2528,7 @@ function renderCalendar(){
 function renderKm(){
   const t=todayKey(), runs=runList().map(r=>Object.assign({},r,{kind:r.kind||(planFor(r.k).run? planFor(r.k).run.kind : 'Libre')}));
   let h='<div class="sub-head anim" style="--i:0"><h2>Kilómetros</h2><p class="sec-sub">Tu estadística corriendo: cuánto, cuánto más y a qué ritmo.</p></div>';
-  h+=stravaCard();
+  h+=stravaHint();
   if(!runs.length) return h+'<div class="empty anim" style="--i:1"><strong>Aún no hay carreras</strong>Guarda tu primera carrera en Hoy o impórtala de Garmin y aquí verás todos tus kilómetros.</div><div class="row-actions" style="margin-top:12px">'+importBtn('Importar actividad de Garmin')+'</div>';
   const tot=runs.reduce((acc,r)=>acc+r.km,0), longest=runs.reduce((acc,r)=>r.km>acc.km? r : acc), paced=runs.filter(r=>r.min>0&&r.km>=3), best=paced.length? paced.reduce((acc,r)=>r.min/r.km<acc.min/acc.km? r : acc) : null;
   const d0=parseKey(t), ym=t.slice(0,7), pm=new Date(d0.getFullYear(),d0.getMonth()-1,1), pym=pm.getFullYear()+'-'+pad(pm.getMonth()+1);
@@ -3277,11 +3282,46 @@ function stravaCard(){
     +'<p class="hint">'+(c? 'Tus carreras de Strava se importan solas al abrir la app'+(S.strava.last? ' (última vez: '+fmtShort(S.strava.last)+')' : '')+'. Si tu reloj Garmin sube a Strava, también llegan aquí.' : 'Conecta tu cuenta y Serevix importará tus carreras con distancia, ritmo, pulso, desnivel y ruta. Si tu Garmin sube a Strava, también llegan aquí.')+'</p>'
     +'<div class="row-actions">'+(c? '<button class="btn primary sm" data-act="strava-sync">Sincronizar ahora</button><button class="btn ghost sm" data-act="strava-off">Desconectar</button>' : '<button class="btn strava-btn sm" data-act="strava-on">Conectar con Strava</button>')+'</div></section>';
 }
+/* ---------- pestaña Social: Strava y amigos ---------- */
+function renderSocial(tab){
+  let h='<section class="hero-day anim" style="--i:0"><p class="eyebrow">'+(S.profile.name? esc(S.profile.name)+' · ' : '')+'Strava y amigos</p><h1>Social</h1></section>';
+  h+='<div id="seg-anchor"></div><nav class="seg" aria-label="Secciones de Social">'+SOCS.map(id=>'<a href="#'+id+'"'+(tab===id?' aria-current="page"':'')+'>'+PAGE_NAME[id]+(id==='amigos'&&SOC.pendingIn.length? '<span class="seg-n">'+SOC.pendingIn.length+'</span>' : '')+'</a>').join('')+'</nav>';
+  h+='<div class="sub-body" id="sub-body">'+(tab==='amigos'? renderAmigos() : renderStravaPage())+'</div>';
+  return h;
+}
+function stravaRuns(){ return runList().filter(r=>r.src==='strava') }
+function stravaHint(){
+  if(S.strava&&S.strava.connected) return '';
+  return '<p class="hint anim" style="--i:1;margin-top:6px">¿Usas Strava o un reloj Garmin? Conéctalo en <a class="link" href="#strava">Social › Strava</a> y tus carreras llegarán solas.</p>';
+}
+function renderStravaPage(){
+  const c=!!(S.strava&&S.strava.connected), runs=stravaRuns();
+  let h='<div class="sub-head anim" style="--i:0"><h2>Strava</h2><p class="sec-sub">Tus carreras de Strava y de tu reloj Garmin: kilómetros, ritmo, pulso y ruta.</p></div>';
+  h+=stravaCard();
+  if(!runs.length){
+    h+= c? '<div class="empty anim" style="--i:2"><strong>Aún no hay carreras de Strava</strong>Cuando subas una carrera a Strava, o la suba tu Garmin, aparecerá aquí al abrir la app. También puedes tocar «Sincronizar ahora».</div>'
+         : '<div class="empty anim" style="--i:2"><strong>Tu información de Strava</strong>Cuando conectes tu cuenta verás aquí tus kilómetros de la semana y del mes, tu ritmo medio, tu pulso y el mapa de cada carrera.</div>';
+    return h;
+  }
+  const t=todayKey(), mon=mondayOf(t), ym=t.slice(0,7), sum=a=>a.reduce((x,r)=>x+r.km,0);
+  const wk=sum(runs.filter(r=>r.k>=mon)), mk=sum(runs.filter(r=>r.k.slice(0,7)===ym)), tot=sum(runs);
+  const timed=runs.filter(r=>r.min>0), pace=timed.length? timed.reduce((x,r)=>x+r.min,0)/sum(timed) : 0;
+  const hrs=runs.filter(r=>r.hr>0), hr=hrs.length? Math.round(avg(hrs.map(r=>r.hr))) : 0, elev=runs.reduce((x,r)=>x+(+r.elev||0),0);
+  h+='<section class="sec anim" style="--i:2"><div class="sec-head"><h2>Tu Strava</h2><span class="tag">'+runs.length+' carrera'+(runs.length==1?'':'s')+'</span></div><div class="tiles">'
+    +tile('Esta semana',fmtKm(wk),'km')+tile('Este mes',fmtKm(mk),'km')+tile('Total',fmtKm(tot),'km')
+    +tile('Ritmo medio',pace? fmtPace(pace) : '—',pace? '/km' : '')+tile('Pulso medio',hr||'—',hr? 'ppm' : '')+tile('Desnivel',fmtInt(elev),'m')+'</div></section>';
+  const wv=[], wl=[]; for(let i=7;i>=0;i--){ const m=addDays(mon,-7*i), e=addDays(m,7); wv.push(round2(sum(runs.filter(r=>r.k>=m&&r.k<e)))); wl.push(fmtShort(m)) }
+  h+='<section class="sec anim" style="--i:3"><div class="sec-head"><h2>Km por semana</h2><span class="tag">8 semanas</span></div><div class="chart-box">'+barChart(wv,wl,{cls:'b-run',fmt:v=>fmtKm(v),aria:'Kilómetros de Strava por semana en las últimas 8 semanas',floor:5})+'</div></section>';
+  const last=runs[runs.length-1];
+  h+='<section class="sec anim" style="--i:4"><div class="sec-head"><h2>Última carrera</h2><span class="tag">'+esc(fmtShort(last.k))+'</span></div>'+garminBlock(last)+'</section>';
+  h+='<section class="sec anim" style="--i:5"><div class="sec-head"><h2>Tus carreras</h2></div><ul class="prog">'+runs.slice(-12).reverse().map(r=>'<li><div class="pb"><strong>'+esc(r.file||'Carrera')+'</strong><span class="ds">'+esc(fmtShort(r.k))+(r.min>0? ' · '+fmtPace(r.min/r.km)+' /km' : '')+(r.hr? ' · '+r.hr+' ppm' : '')+'</span></div><span class="dv">'+fmtKm(r.km)+' km</span></li>').join('')+'</ul></section>';
+  return h;
+}
 (function stravaCallback(){
   let q; try{ q=new URLSearchParams(location.search) }catch(e){ return }
   const code=q.get('code'), state=q.get('state'), err=q.get('error');
   if(!code&&!err) return;
-  try{ history.replaceState(null,'',location.pathname+'#km') }catch(e){}
+  try{ history.replaceState(null,'',location.pathname+'#strava') }catch(e){}
   if(err){ setTimeout(()=>toast('No se conectó Strava: no diste permiso.'),900); return }
   if(!sb||!state) return;
   stravaCall('exchange',{code,state}).then(()=>{ setTimeout(()=>toast('Strava conectado. Importando tus carreras…'),900); if(uidV&&mode==='db') stravaBoot() }).catch(()=>setTimeout(()=>toast('No se pudo conectar con Strava. Inténtalo otra vez.'),900));
@@ -3608,7 +3648,7 @@ window.addEventListener('hashchange',()=>{
   const prev=lastTab, anc=document.getElementById('seg-anchor'), top=document.querySelector('.top');
   const target=anc? anc.getBoundingClientRect().top+window.scrollY-((top&&top.offsetHeight)||56) : 0;
   closeSheet(); render();
-  if(prev&&anc&&screenOf(prev)==='perfil'&&screenOf(currentTab())==='perfil'){ if(window.scrollY>target) window.scrollTo(0,target) }
+  if(prev&&anc&&(screenOf(prev)==='perfil'||screenOf(prev)==='social')&&screenOf(prev)===screenOf(currentTab())){ if(window.scrollY>target) window.scrollTo(0,target) }
   else window.scrollTo(0,0);
 });
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'){ if(!document.activeElement||!document.activeElement.dataset||document.activeElement.dataset.f==null) render(); if(run.id) runTick() } });
