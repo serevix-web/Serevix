@@ -4,8 +4,8 @@
 // persona son las reglas de la base de datos (supabase/schema.sql).
 // Si los dejas vacíos, la app funciona en "modo sin cuenta" y guarda todo en el móvil.
 window.SEREVIX_CONFIG = {
-  supabaseUrl: '',
-  supabaseAnonKey: '',
+  supabaseUrl: 'https://iwjeefkkomyrvlvmqrse.supabase.co',
+  supabaseAnonKey: 'sb_publishable_bvqXrr0eF1FsYd5xqnQy9w_VDaWHGdd',
   stravaClientId: '', // opcional: el Client ID de tu app de Strava (es público)
   aiFunction: ''      // opcional: nombre de la función para calcular macros con IA (más adelante)
 };

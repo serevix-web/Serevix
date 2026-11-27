@@ -120,3 +120,12 @@ create table if not exists public.strava_states (
   created_at timestamptz not null default now()
 );
 alter table public.strava_states enable row level security;
+
+-- =====================================================================
+-- 6) Permisos explícitos (los proyectos nuevos de Supabase ya no los dan solos)
+-- =====================================================================
+grant usage on schema public to authenticated, service_role;
+grant select, insert, update, delete on public.docs, public.profiles, public.follows, public.shares to authenticated;
+revoke all on public.docs, public.profiles, public.follows, public.shares from anon;
+revoke all on public.strava_tokens, public.strava_states from anon, authenticated;
+grant select, insert, update, delete on public.strava_tokens, public.strava_states to service_role;
