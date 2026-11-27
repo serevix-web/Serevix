@@ -2,3 +2,10 @@ node_modules/
 .DS_Store
 *.local.json
 serevix-mis-datos*.json
+# App del reloj Garmin: compilados y claves de desarrollador (no se suben)
+garmin/bin/
+*.prg
+*.iq
+*.der
+*.pem
+developer_key*

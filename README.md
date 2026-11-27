@@ -74,6 +74,9 @@ Funciona en cuanto ejecutes `supabase/schema.sql`, que ya incluye las tablas de 
 - Una app nueva solo la puede conectar 1 persona, que eres tú. Para que la conecten más usuarios hay que pedir a Strava que la revise y amplíe el límite.
 - Strava no permite mostrar sus datos a otras personas, así que las carreras importadas de Strava no salen en el muro de tus amigos.
 
+### 8. Reloj Garmin (Forerunner 170)
+En la carpeta `garmin/` está la app de Serevix para el reloj: marcas tus series desde la muñeca y la app del móvil se actualiza sola. Mira `garmin/README.md` para prepararla e instalarla. Se vincula desde **Perfil › Ajustes › Reloj Garmin**.
+
 ## Siguientes pasos
 - **Google Play** (pago único de 25 $) y **App Store** (99 $ al año; necesita un Mac o un servicio que compile en la nube): se empaqueta la misma app con Capacitor.
 - **Recuperar contraseña por correo**: hace falta configurar un servicio de envío de correos (SMTP) en Supabase.

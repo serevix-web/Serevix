@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<!-- App de Serevix para relojes Garmin: marca tus series desde la muñeca. -->
+<iq:manifest version="3" xmlns:iq="http://www.garmin.com/xml/connectiq">
+    <iq:application id="24a6de42ecf7463f94f9d03a25325fad" type="watch-app" name="@Strings.AppName" entry="SerevixApp" launcherIcon="@Drawables.LauncherIcon" minApiLevel="3.2.0">
+        <iq:products>
+            <iq:product id="fr170"/>
+            <iq:product id="fr170m"/>
+        </iq:products>
+        <iq:permissions>
+            <iq:uses-permission id="Communications"/>
+        </iq:permissions>
+        <iq:languages>
+            <iq:language>spa</iq:language>
+        </iq:languages>
+        <iq:barrels/>
+    </iq:application>
+</iq:manifest>
