@@ -143,3 +143,77 @@ begin
     alter publication supabase_realtime add table public.follows;
   end if;
 end $$;
+
+-- =====================================================================
+-- 8) Reloj Garmin: vincular el reloj y recibir las series que se marcan en él
+--    (las usa la función "watch" y la app del reloj de la carpeta garmin/)
+-- =====================================================================
+create table if not exists public.watch_devices (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid references auth.users(id) on delete cascade,
+  token_hash  text not null unique,
+  code        text unique check (code is null or code ~ '^[A-Z0-9]{6}$'),
+  name        text not null default 'Garmin' check (char_length(name) <= 40),
+  created_at  timestamptz not null default now(),
+  linked_at   timestamptz,
+  last_seen   timestamptz
+);
+alter table public.watch_devices enable row level security;
+drop policy if exists "watch_devices_read_own" on public.watch_devices;
+drop policy if exists "watch_devices_delete_own" on public.watch_devices;
+create policy "watch_devices_read_own" on public.watch_devices for select to authenticated using (auth.uid() = user_id);
+create policy "watch_devices_delete_own" on public.watch_devices for delete to authenticated using (auth.uid() = user_id);
+revoke all on public.watch_devices from anon, authenticated;
+grant select (id, user_id, name, created_at, linked_at, last_seen) on public.watch_devices to authenticated;
+grant delete on public.watch_devices to authenticated;
+grant select, insert, update, delete on public.watch_devices to service_role;
+
+create table if not exists public.watch_events (
+  id          bigint generated always as identity primary key,
+  user_id     uuid not null references auth.users(id) on delete cascade,
+  device_id   uuid references public.watch_devices(id) on delete set null,
+  day         text not null check (day ~ '^\d{4}-\d\d-\d\d$'),
+  ex_id       text not null check (char_length(ex_id) between 1 and 64),
+  set_i       int  not null check (set_i between 0 and 49),
+  reps        int  not null check (reps between 1 and 100),
+  kg          numeric not null check (kg >= 0 and kg <= 1000),
+  applied     boolean not null default false,
+  created_at  timestamptz not null default now(),
+  unique (user_id, day, ex_id, set_i)
+);
+create index if not exists watch_events_pending on public.watch_events (user_id, applied);
+alter table public.watch_events enable row level security;
+drop policy if exists "watch_events_read_own" on public.watch_events;
+drop policy if exists "watch_events_mark_own" on public.watch_events;
+create policy "watch_events_read_own" on public.watch_events for select to authenticated using (auth.uid() = user_id);
+create policy "watch_events_mark_own" on public.watch_events for update to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id);
+revoke all on public.watch_events from anon, authenticated;
+grant select on public.watch_events to authenticated;
+grant update (applied) on public.watch_events to authenticated;
+grant select, insert, update, delete on public.watch_events to service_role;
+
+create or replace function public.link_watch(p_code text)
+returns text
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare d public.watch_devices;
+begin
+  if auth.uid() is null then return null; end if;
+  update public.watch_devices
+     set user_id = auth.uid(), linked_at = now(), code = null
+   where code = upper(trim(p_code)) and user_id is null and created_at > now() - interval '15 minutes'
+   returning * into d;
+  if d.id is null then return null; end if;
+  return d.name;
+end $$;
+revoke all on function public.link_watch(text) from public, anon;
+grant execute on function public.link_watch(text) to authenticated;
+
+do $$
+begin
+  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'watch_events') then
+    alter publication supabase_realtime add table public.watch_events;
+  end if;
+end $$;

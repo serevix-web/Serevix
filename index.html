@@ -849,6 +849,12 @@ img{max-width:100%}
 .lt-link{display:inline-block;margin:8px 0 4px}
 .lt-steps{margin:4px 0 12px;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:1.45}
 .tabs-in .tab span{white-space:nowrap}
+.watch-set{display:flex;flex-direction:column;gap:8px;margin:14px 0;padding:14px;border:1px solid var(--line);border-radius:18px;background:#0C0B11}
+.watch-set h3{margin:0;display:flex;align-items:center;gap:8px;font-size:16px}
+.watch-set h3 svg.i{width:20px;height:20px;color:var(--lila)}
+.watch-set .avatar svg.i{width:18px;height:18px}
+.watch-link{display:flex;gap:8px;align-items:center}
+.watch-link input{flex:1;min-width:0;text-transform:uppercase;letter-spacing:.18em;font-weight:700}
 .seg-n{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;margin-left:6px;border-radius:9px;background:var(--lila);color:var(--on-lila);font-size:11px;font-weight:800}
 .lg-f{display:flex;flex-direction:column;gap:12px}
 .lg-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:14px;background:var(--surface-2);border:1px solid var(--line)}
@@ -2866,11 +2872,12 @@ function openSettings(){
     +'<div class="grid2"><label class="field"><span>Peso (kg)</span><input id="s-weight" inputmode="decimal" value="'+(S.profile.weight? fmtKg(S.profile.weight) : '')+'" placeholder="75"></label><label class="field"><span>Objetivo</span><select id="s-goal">'+GOALS.map(([v,l])=>'<option value="'+v+'"'+(S.profile.goal===v?' selected':'')+'>'+l+'</option>').join('')+'</select></label></div><label class="field"><span>Aviso del cronómetro de descanso</span><select id="s-rest">'+rests.map(([v,l])=>'<option value="'+v+'"'+(S.settings.rest==v?' selected':'')+'>'+l+'</option>').join('')+'</select></label>'
     +'<label class="switch"><input type="checkbox" id="s-auto"'+(S.settings.autoUp?' checked':'')+'><span>Ajustar peso, repeticiones, kilómetros y ritmo solos según tu esfuerzo</span></label>'
     +'<p class="hint">'+(mode==='db'? 'Tus datos se guardan en tu cuenta de Serevix'+(uEmail? ' ('+esc(uEmail)+')' : '')+' y solo los ves tú. También hay una copia en este móvil.' : 'Tus datos se guardan en este dispositivo.')+'</p>'
+    +(socOn()? watchSetHtml() : '')
     +'<div class="row-actions"><button class="btn ghost sm" data-act="export">Exportar mis datos</button><label class="btn ghost sm file-btn"><span>Importar copia</span><input type="file" class="sr" accept=".json,application/json" data-importjson="1"></label></div>'
     +(sb? '<button class="btn danger sm" data-act="del-account">Borrar mi cuenta y todos mis datos</button>' : '')
     +'<div class="row-actions"><button class="btn ghost sm" data-act="recalib">Repetir semana de calibración</button><button class="btn danger sm" data-act="clear-log">Borrar historial (tu plan se queda)</button></div>'
     +'<div class="sheet-actions"><button class="btn primary" data-act="close-sheet">Listo</button></div>';
-  openSheet(h);
+  openSheet(h); if(socOn()) watchLoad();
 }
 function openFinish(){ sheetCtx={type:'fin', photo:null, note:''}; renderFinishSheet() }
 function renderFinishSheet(){
@@ -3144,7 +3151,7 @@ const SOC={me:null, loaded:false, loading:false, following:[], followers:[], pen
 let shareT=null, sharedHash={}, socQT=null;
 function socOn(){ return !!(sb&&uidV) }
 function socReset(){ socLiveStop(); gpsKill(); Object.assign(SOC,{me:null, loaded:false, loading:false, following:[], followers:[], pendingIn:[], pendingOut:[], profiles:{}, feed:[], summaries:{}, results:[], err:''}); sharedHash={}; clearTimeout(shareT) }
-function afterReady(){ scheduleShare(); stravaBoot(); socLoad(); socLiveStart(); gpsResume() }
+function afterReady(){ scheduleShare(); stravaBoot(); socLoad(); socLiveStart(); gpsResume(); watchApply() }
 async function socLoad(){
   if(!socOn()||SOC.loading) return;
   SOC.loading=true;
@@ -3339,6 +3346,55 @@ function stravaCard(){
     +'<p class="hint">'+(c? 'Tus carreras de Strava se importan solas al abrir la app'+(S.strava.last? ' (última vez: '+fmtShort(S.strava.last)+')' : '')+'. Si tu reloj Garmin sube a Strava, también llegan aquí.' : 'Conecta tu cuenta y Serevix importará tus carreras con distancia, ritmo, pulso, desnivel y ruta. Si tu Garmin sube a Strava, también llegan aquí.')+'</p>'
     +'<div class="row-actions">'+(c? '<button class="btn primary sm" data-act="strava-sync">Sincronizar ahora</button><button class="btn ghost sm" data-act="strava-off">Desconectar</button>' : '<button class="btn strava-btn sm" data-act="strava-on">Conectar con Strava</button>')+'</div></section>';
 }
+/* ---------- reloj Garmin ---------- */
+let watchBusy=false, watchAgain=false, watchT=null;
+const WATCH_ICON='<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="6"/><path d="M9 6l1-3h4l1 3M9 18l1 3h4l1-3M12 9.5V12l1.5 1.5"/></svg>';
+function watchSetHtml(){
+  return '<section class="watch-set"><h3>'+WATCH_ICON+'Reloj Garmin</h3><p class="hint">Con la app Serevix en tu Garmin marcas las series desde la muñeca y aquí se apuntan solas. Abre la app en el reloj: te enseñará un código de 6 letras y números. Escríbelo aquí.</p>'
+    +'<div id="watch-box"><p class="hint">Cargando…</p></div>'
+    +'<div class="watch-link"><input id="w-code" maxlength="6" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="Código del reloj" aria-label="Código del reloj"><button class="btn primary sm" data-act="watch-link">Vincular</button></div><p class="err" id="w-err" hidden></p></section>';
+}
+async function watchLoad(){
+  const box=document.getElementById('watch-box'); if(!box||!socOn()) return;
+  try{
+    const r=await sb.from('watch_devices').select('id,name,linked_at,last_seen').order('linked_at',{ascending:false}); if(r.error) throw r.error;
+    const L=r.data||[], b2=document.getElementById('watch-box'); if(!b2) return;
+    b2.innerHTML=L.length? '<ul class="fr-list">'+L.map(d=>'<li class="fr-row"><span class="avatar" aria-hidden="true"><span>'+WATCH_ICON+'</span></span><div class="db"><strong>'+esc(d.name||'Garmin')+'</strong><span class="ds">'+(d.last_seen? 'Conectado '+esc(agoTxt(Date.parse(d.last_seen))) : 'Vinculado')+'</span></div><button class="del-x" data-act="watch-unlink" data-id="'+esc(d.id)+'">Desvincular</button></li>').join('')+'</ul>'
+      : '<p class="hint">Todavía no has vinculado ningún reloj.</p>';
+  }catch(e){ const b2=document.getElementById('watch-box'); if(b2) b2.innerHTML='<p class="hint">No se pudo cargar. Revisa tu conexión.</p>' }
+}
+function watchPing(){ clearTimeout(watchT); watchT=setTimeout(watchApply,400) }
+async function watchApply(){
+  if(!socOn()||mode!=='db') return;
+  if(watchBusy){ watchAgain=true; return }
+  watchBusy=true;
+  try{
+    const r=await sb.from('watch_events').select('id,day,ex_id,set_i,reps,kg,created_at').eq('applied',false).order('id').limit(200);
+    const evs=(r&&r.data)||[]; if(!evs.length) return;
+    const t=todayKey(); let last=null, added=0;
+    for(const ev of evs){
+      const ex=S.exercises[ev.ex_id], j=Math.floor(+ev.set_i);
+      if(!ex||!/^\d{4}-\d\d-\d\d$/.test(String(ev.day))||!(j>=0&&j<50)) continue;
+      const L=ensureDay(ev.day), e=L.ex[ev.ex_id]||(L.ex[ev.ex_id]=newEntry(ex));
+      while(e.done.length<=j) e.done.push(false);
+      const at=Date.parse(ev.created_at)||Date.now(), kg=round2(Math.max(0,Math.min(1000,+ev.kg||0))), reps=clampInt(+ev.reps,1,100,e.reps);
+      if(!e.done[j]){ e.log=e.log||[]; while(e.log.length<j) e.log.push(null); e.log[j]={r:reps, w:kg}; e.done[j]=true; added++ }
+      if(kg!==e.w) e.w=kg;
+      if(!L.t0||at<L.t0) L.t0=at;
+      if(!L.lastAt||at>=L.lastAt){ L.lastEx=ev.ex_id; L.lastAt=at }
+      syncExercise(ev.ex_id, ev.day);
+      if(ev.day===t) last={id:ev.ex_id, e};
+    }
+    commit();
+    await sb.from('watch_events').update({applied:true}).in('id', evs.map(x=>x.id));
+    if(added){
+      toast(added==1? 'Serie apuntada desde tu Garmin' : added+' series apuntadas desde tu Garmin');
+      if(last&&document.visibilityState==='visible'){ const nx=last.e.done.findIndex(d=>!d); if(nx>=0) startRest(last.id,nx); else if(run.id===last.id) runClear() }
+    }
+  }catch(e){}
+  finally{ watchBusy=false; if(watchAgain){ watchAgain=false; watchPing() } }
+}
+
 /* ---------- pestaña Retos ---------- */
 function renderRetosPage(){
   return '<section class="hero-day anim" style="--i:0"><p class="eyebrow">'+(S.profile.name? 'Hola, '+esc(S.profile.name)+' · ' : '')+'Supera tus marcas</p><h1>Retos</h1></section><div class="sub-body" id="sub-body">'+renderRetos()+'</div>';
@@ -3545,13 +3601,15 @@ function socLiveStart(){
         .on('postgres_changes',{event:'UPDATE',schema:'public',table:'shares'},ping)
         .on('postgres_changes',{event:'INSERT',schema:'public',table:'follows'},()=>socPing())
         .on('postgres_changes',{event:'UPDATE',schema:'public',table:'follows'},()=>socPing())
+        .on('postgres_changes',{event:'INSERT',schema:'public',table:'watch_events'},()=>watchPing())
+        .on('postgres_changes',{event:'UPDATE',schema:'public',table:'watch_events'},p=>{ if(p&&p.new&&p.new.applied===false) watchPing() })
         .subscribe();
     }catch(e){ socCh=null }
   }
   clearInterval(socPollT); socPollT=setInterval(()=>{ if(document.visibilityState==='visible'&&socOn()) socLoad() },60000);
 }
 function socLiveStop(){ if(socCh){ try{ sb.removeChannel(socCh) }catch(e){} socCh=null } clearInterval(socPollT); socPollT=null; clearTimeout(socRT) }
-document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&socOn()&&SOC.loaded) socPing() });
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&socOn()&&SOC.loaded) socPing(); if(document.visibilityState==='visible') watchPing() });
 
 /* ---------- pestaña Social: Strava y amigos ---------- */
 function renderSocial(tab){
@@ -3603,6 +3661,15 @@ const A={
   'close-sheet':()=>closeSheet(),
   'settings':()=>openSettings(),
   'logout':()=>{ signOutLocal(false) },
+  'watch-link':async()=>{
+    const i=document.getElementById('w-code'), c=String((i&&i.value)||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+    if(c.length!==6){ showErr('w-err','El código tiene 6 letras y números. Lo ves en la app Serevix de tu reloj.'); return }
+    const r=await sb.rpc('link_watch',{p_code:c});
+    if(r.error||!r.data){ showErr('w-err','Ese código no vale o ha caducado. Cierra y abre la app en el reloj para ver uno nuevo.'); return }
+    if(i) i.value=''; const er=document.getElementById('w-err'); if(er) er.hidden=true;
+    toast('Reloj vinculado: ya puedes marcar tus series desde el Garmin'); watchLoad();
+  },
+  'watch-unlink':async el=>{ if(!armed(el,'Toca otra vez')) return; await sb.from('watch_devices').delete().eq('id',el.dataset.id); toast('Reloj desvinculado'); watchLoad() },
   'lt-open':()=>openLt(),
   'lt-paste':async()=>{ try{ const t=String(await navigator.clipboard.readText()||''), m=t.match(/https:\/\/\S+/), i=document.getElementById('lt-url'); if(i) i.value=m? m[0] : t.trim() }catch(e){ toast('No pude leer lo copiado. Mantén pulsado el campo y elige «Pegar».') } },
   'lt-save':()=>{ const i=document.getElementById('lt-url'), raw=String((i&&i.value)||''), m=raw.match(/https:\/\/\S+/), u=ltUrl(m? m[0] : raw); if(!u){ showErr('lt-err','Ese enlace no es de Garmin. Copia el enlace de LiveTrack desde la app Garmin Connect.'); return } const L=ensureDay(todayKey()); L.lt={url:u, at:Date.now()}; closeSheet(); commit(); toast('LiveTrack compartido: tus amigos ya pueden seguirte') },
