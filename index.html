@@ -840,6 +840,13 @@ img{max-width:100%}
 .lr-st span:first-child{color:#fff;font-weight:700}
 .me-card .fh .avatar{width:52px;height:52px;font-size:22px}
 @media (prefers-reduced-motion:reduce){.gps-pill i{animation:none}}
+.lt-go{margin-top:8px}
+.lt-live{display:flex;flex-direction:column;gap:8px;padding:12px 14px;border:1px solid var(--lila-line);border-radius:16px;background:rgba(183,155,255,.06)}
+.lt-live p{margin:0}
+.lt-live.mine{margin-bottom:12px}
+.btn.lt-btn{background:#fff;color:#000}
+.lt-link{display:inline-block;margin:8px 0 4px}
+.lt-steps{margin:4px 0 12px;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:1.45}
 .seg-n{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;margin-left:6px;border-radius:9px;background:var(--lila);color:var(--on-lila);font-size:11px;font-weight:800}
 .lg-f{display:flex;flex-direction:column;gap:12px}
 .lg-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:14px;background:var(--surface-2);border:1px solid var(--line)}
@@ -2158,6 +2165,7 @@ function renderRunCard(k,p,i){
   if(planned&&planned.cal&&!r) body+='<p class="cal-hint">'+ICON.spark+'<span>Calibración: corre a tu ritmo cómodo. Con esta carrera Serevix fija tus kilómetros y tus ritmos de entrenamiento.</span></p>';
   if(target>0) body+='<div class="run-target"><span class="num">'+fmtKm(target)+'</span><span class="unit">km</span>'+(tpace? '<span class="pace-t">a '+fmtPace(tpace)+' /km</span>' : '')+'<span class="lbl">objetivo de hoy</span></div>';
   body+=musRow('run','run');
+  if(ltOn(k)&&!gpsActive(k)) body+=ltPanelHtml(k);
   if(gpsActive(k)) body+=gpsLiveHtml(k,target);
   else if(r&&!ui.editRun){
     const pace=r.min&&r.km? r.min/r.km : 0, hit=target>0&&r.km>=target;
@@ -2169,7 +2177,7 @@ function renderRunCard(k,p,i){
   } else {
     let mm='', ss='';
     if(r&&r.min){ const t=Math.round(r.min*60); mm=Math.floor(t/60); ss=t%60 }
-    body+=gpsStartHtml(k);
+    body+=gpsStartHtml(k)+ltBtnHtml(k);
     body+='<div class="run-form">'
       +'<label class="field"><span>Km hechos</span><input id="run-km" data-keep inputmode="decimal" autocomplete="off" placeholder="'+(target>0? fmtKm(target) : '5')+'" value="'+(r? fmtKm(r.km) : '')+'"></label>'
       +'<label class="field"><span>Minutos</span><input id="run-min" data-keep inputmode="numeric" autocomplete="off" placeholder="28" value="'+mm+'"></label>'
@@ -2188,7 +2196,7 @@ function renderRunCard(k,p,i){
 
 function renderToday(){
   const k=todayKey(), p=planFor(k), L=S.log.days[k];
-  const showRun=!!p.run||!!(L&&L.run)||ui.freeRun;
+  const showRun=!!p.run||!!(L&&L.run)||ui.freeRun||ltOn(k)||gpsActive(k);
   const title=p.title|| (hasContent(p)? cap(DOW_LONG[p.dow]) : 'Descanso');
   let h='<section class="hero-day anim" style="--i:0"><p class="eyebrow">'+(S.profile.name? 'Hola, '+esc(S.profile.name)+' · ' : '')+esc(fmtLong(k))+(p.dow!==p.nat? ' · rutina del '+DOW_LONG[p.dow] : '')+'</p>'
     +'<h1>'+esc(title)+'</h1><button class="link" data-act="switch-day">Hacer otra rutina hoy</button></section>';
@@ -3155,7 +3163,7 @@ async function socLoad(){
       const su=await sb.from('shares').select('user_id,data').in('user_id',SOC.following).eq('id','summary');
       (su.data||[]).forEach(r=>{ sums[r.user_id]=r.data||{} });
       const ac=await sb.from('shares').select('user_id,id,data,updated_at').in('user_id',SOC.following).like('id','act-%').order('updated_at',{ascending:false}).limit(60);
-      feed=(ac.data||[]).map(r=>Object.assign({},r.data||{},{uid:r.user_id, upd:r.updated_at})).filter(f=>/^\d{4}-\d\d-\d\d$/.test(String(f.k))).sort((a,b)=>String(b.k).localeCompare(String(a.k))||String(b.upd).localeCompare(String(a.upd))).slice(0,40);
+      feed=(ac.data||[]).map(r=>Object.assign({},r.data||{},{uid:r.user_id, upd:r.updated_at})).filter(f=>!f.gone&&/^\d{4}-\d\d-\d\d$/.test(String(f.k))).sort((a,b)=>String(b.k).localeCompare(String(a.k))||String(b.upd).localeCompare(String(a.upd))).slice(0,40);
     }
     SOC.summaries=sums; SOC.feed=feed;
     SOC.loaded=true; SOC.err='';
@@ -3174,13 +3182,14 @@ function summaryData(){
 }
 function actShare(k){
   const L=S.log.days[k]||(gpsActive(k)? {} : null); if(!L) return null;
-  const st=logStats(L), own=ownKm(L), gl=gpsLiveFor(k); if(!st.sets&&!own&&!gl) return null;
+  const st=logStats(L), own=ownKm(L), gl=gpsLiveFor(k), lt=ltOf(L), ltl=ltLive(L); if(!st.sets&&!own&&!gl&&!lt) return null;
   const sm=sessionSum(k), a=L.act||{}, mus=(function(){ const P=new Set(), Sx=new Set(); Object.keys(L.ex||{}).filter(id=>L.ex[id].done.some(Boolean)).forEach(id=>{ const M=MOV[(S.exercises[id]&&S.exercises[id].mv)||guessMove(L.ex[id].n)]||MOV.idle; M.P.forEach(x=>P.add(x)); M.S.forEach(x=>Sx.add(x)) }); if(own){ MOV.run.P.forEach(x=>P.add(x)); MOV.run.S.forEach(x=>Sx.add(x)) } P.forEach(x=>Sx.delete(x)); return {P:[...P], S:[...Sx]} })();
   const ex=Object.keys(L.ex||{}).filter(id=>L.ex[id].done.some(Boolean)).slice(0,12).map(id=>{ const e=L.ex[id], x=S.exercises[id], n=e.done.filter(Boolean).length, rl=e.log? e.done.map((d,j)=>d&&e.log[j]? e.log[j].r : null).filter(v=>v!=null) : []; return {n:(x&&x.name)||e.n||'Ejercicio', s:n, r:rl.length===n&&n? rl.join(', ') : String(e.reps), w:e.w>0? kgTxt(x,e.w) : ''} });
   let live=null;
   if(k===todayKey()&&!a.end&&st.sets){ let tot=0; planFor(k).ex.forEach(id=>{ const e=L.ex&&L.ex[id]; tot+= e? e.done.length : ((S.exercises[id]&&S.exercises[id].sets)||0) }); const cx=L.lastEx&&S.exercises[L.lastEx]; live={start:L.t0||null, at:L.lastAt||null, tot:Math.max(tot,st.sets), cur:cx? cx.name : ''} }
   if(gl) live=Object.assign(live||{start:gl.start, tot:0, cur:''},{run:{km:gl.km, min:gl.min, pts:gl.pts, paused:gl.paused}, at:gl.at});
-  return {k, live, title:a.title||((!st.sets&&(own||gl)&&!planFor(k).run)? 'Carrera' : sm.title), end:a.end||null, dur:a.dur||0, sets:st.sets, vol:Math.round(st.vol), run:own? {km:own, min:+L.run.min||0} : null, rpe:sm.rpe||0, P:mus.P, S:mus.S, ex, note:a.note||'', photo:a.photo||null};
+  if(ltl) live=Object.assign(live||{start:lt.at, tot:0, cur:''},{garmin:true, at:Math.max(+(live&&live.at)||0, +lt.at||0)});
+  return {k, live, lt:lt? ltUrl(lt.url) : null, ltAt:lt? +lt.at : null, title:a.title||((!st.sets&&(own||gl||lt)&&!planFor(k).run)? 'Carrera' : sm.title), end:a.end||null, dur:a.dur||0, sets:st.sets, vol:Math.round(st.vol), run:own? {km:own, min:+L.run.min||0} : null, rpe:sm.rpe||0, P:mus.P, S:mus.S, ex, note:a.note||'', photo:a.photo||null};
 }
 async function publishShares(){
   if(!socOn()||mode!=='db') return;
@@ -3189,10 +3198,10 @@ async function publishShares(){
     if(sharedHash.__off) sharedHash={};
     if(SOC.me&&S.profile.name&&SOC.me.name!==S.profile.name){ const r=await sb.from('profiles').update({name:S.profile.name, updated_at:new Date().toISOString()}).eq('user_id',uidV); if(!r.error) SOC.me.name=S.profile.name }
     const t=todayKey(), rows=[{id:'summary', data:summaryData()}], gone=[];
-    for(let i=0;i<30;i++){ const k=addDays(t,-i), d=actShare(k); if(d) rows.push({id:'act-'+k, data:d}); else if(sharedHash['act-'+k]) gone.push('act-'+k) }
+    for(let i=0;i<30;i++){ const k=addDays(t,-i), d=actShare(k); if(d) rows.push({id:'act-'+k, data:d}); else if(sharedHash['act-'+k]&&sharedHash['act-'+k]!=='gone') gone.push('act-'+k) }
     const changed=rows.filter(r=>{ const h=JSON.stringify(r.data); if(sharedHash[r.id]===h) return false; r.h=h; return true });
     if(changed.length){ const now=new Date().toISOString(); const r=await sb.from('shares').upsert(changed.map(x=>({user_id:uidV, id:x.id, data:x.data, updated_at:now}))); if(!r.error) changed.forEach(x=>{ sharedHash[x.id]=x.h }) }
-    for(const id of gone){ const r=await sb.from('shares').delete().eq('user_id',uidV).eq('id',id); if(!r.error) delete sharedHash[id] }
+    for(const id of gone){ const r=await sb.from('shares').upsert({user_id:uidV, id, data:{k:id.slice(4), gone:true}, updated_at:new Date().toISOString()}); if(!r.error) sharedHash[id]='gone' }
     for(const r of rows){ const pid=r.data&&r.data.photo; if(!pid||sharedHash['ph-'+pid]) continue; const img=await loadPhoto(pid); if(img){ const u=await sb.from('shares').upsert({user_id:uidV, id:'ph-'+pid, data:{img}, updated_at:new Date().toISOString()}); if(!u.error) sharedHash['ph-'+pid]='1' } }
   }catch(e){}
 }
@@ -3222,7 +3231,7 @@ function friendAct(f,i){
   const photo=(typeof f.photo==='string'&&/^[a-z0-9-]{3,40}$/i.test(f.photo))? f.photo : null;
   const own=f.uid===uidV, lv=isLive(f), endTs=+f.end||0;
   return '<article class="card act anim'+(lv?' is-live':'')+'" style="--i:'+Math.min(i+3,12)+'"><header class="act-h"><div class="fh">'+miniAvatar(f.uid)+'<div><b>'+(own? 'Tú' : esc(pName(f.uid)))+'</b><p class="eyebrow">'+esc(fmtLong(f.k))+(endTs? ' · '+esc(fmtHM(endTs)) : '')+'</p></div></div>'+(lv? '<span class="tag live"><i></i>En directo</span>' : endTs? '<span class="tag solid">Finalizado</span>' : '')+'</header>'
-    +(lv? liveBar(f) : '')
+    +(lv? liveBar(f) : (ltUrl(f.lt)&&Date.now()-(+f.ltAt||0)<24*3600e3)? '<a class="link lt-link" href="'+esc(ltUrl(f.lt))+'" target="_blank" rel="noopener noreferrer">Ver la carrera en Garmin LiveTrack</a>' : '')
     +'<h3>'+esc(String(f.title||'Entreno').slice(0,60))+'</h3>'
     +(photo? '<div class="act-ph"><img '+(own? 'data-ph="'+esc(photo)+'"' : 'data-sph="'+esc(f.uid)+'|'+esc(photo)+'"')+' alt=""Foto del entreno de '+esc(pName(f.uid))+'"></div>' : '')
     +(rows.length? statsHtml(rows) : '')
@@ -3327,6 +3336,36 @@ function stravaCard(){
     +'<p class="hint">'+(c? 'Tus carreras de Strava se importan solas al abrir la app'+(S.strava.last? ' (última vez: '+fmtShort(S.strava.last)+')' : '')+'. Si tu reloj Garmin sube a Strava, también llegan aquí.' : 'Conecta tu cuenta y Serevix importará tus carreras con distancia, ritmo, pulso, desnivel y ruta. Si tu Garmin sube a Strava, también llegan aquí.')+'</p>'
     +'<div class="row-actions">'+(c? '<button class="btn primary sm" data-act="strava-sync">Sincronizar ahora</button><button class="btn ghost sm" data-act="strava-off">Desconectar</button>' : '<button class="btn strava-btn sm" data-act="strava-on">Conectar con Strava</button>')+'</div></section>';
 }
+/* ---------- Garmin LiveTrack ---------- */
+const LT_ICON='<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="2.5"/><path d="M7.8 7.8a6 6 0 0 0 0 8.4M16.2 7.8a6 6 0 0 1 0 8.4M5 5a10 10 0 0 0 0 14M19 5a10 10 0 0 1 0 14"/></svg>';
+function ltUrl(u){
+  try{ const x=new URL(String(u||'').trim()), h=x.hostname.toLowerCase();
+    if(x.protocol!=='https:'||x.username||x.password) return '';
+    if(!(h==='garmin.com'||h.endsWith('.garmin.com')||h==='garmin.cn'||h.endsWith('.garmin.cn'))) return '';
+    return x.href.length<=400? x.href : '' }catch(e){ return '' }
+}
+function ltOf(L){ const t=L&&L.lt; if(!t||!ltUrl(t.url)||!(Date.now()-(+t.at||0)<24*3600e3)) return null; return t }
+function ltLive(L){ const t=ltOf(L); return !!(t&&Date.now()-(+t.at||0)<4*3600e3&&!(ownKm(L)>0)) }
+function ltOn(k){ return ltLive(S.log.days[k]) }
+function ltBtnHtml(k){ if(!socOn()||k!==todayKey()||gpsActive(k)||ltOn(k)) return ''; return '<button class="btn ghost block lt-go" data-act="lt-open">'+LT_ICON+'Compartir Garmin LiveTrack</button>' }
+function ltPanelHtml(k){
+  const t=ltOf(S.log.days[k]); if(!t) return '';
+  return '<div class="lt-live mine"><div class="gps-top"><span class="tag live"><i></i>En directo con Garmin</span><span class="hint">Compartido '+esc(agoTxt(+t.at))+'</span></div>'
+    +'<p class="hint">Tus amigos pueden seguirte en el mapa de Garmin desde el Muro. Cuando termines, guarda la carrera aquí o impórtala de Garmin.</p>'
+    +'<div class="row-actions"><a class="btn ghost sm" href="'+esc(ltUrl(t.url))+'" target="_blank" rel="noopener noreferrer">Abrir LiveTrack</a><button class="btn ghost sm" data-act="lt-stop">Dejar de compartir</button></div></div>';
+}
+function openLt(){
+  sheetCtx={type:'lt'};
+  let h=head('Garmin LiveTrack');
+  h+='<p class="hint">Si corres con tu reloj Garmin, comparte tu LiveTrack y tus amigos te seguirán en directo, en el mapa de Garmin, desde el Muro.</p>';
+  h+='<ol class="lt-steps"><li>Empieza la carrera en el reloj con el móvil cerca.</li><li>En la app <b>Garmin Connect</b>, abre <b>LiveTrack</b> (suele estar en Más › Funciones de seguridad y seguimiento) e inícialo si no ha empezado solo.</li><li>Toca <b>Compartir</b>, copia el enlace y pégalo aquí.</li></ol>';
+  h+='<label class="field"><span>Enlace de LiveTrack</span><input id="lt-url" type="url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="https://livetrack.garmin.com/…"></label>';
+  if(navigator.clipboard&&navigator.clipboard.readText) h+='<div class="row-actions"><button class="btn ghost sm" data-act="lt-paste">Pegar lo copiado</button></div>';
+  h+='<p class="err" id="lt-err" hidden></p>';
+  h+='<div class="sheet-actions"><button class="btn ghost" data-act="close-sheet">Cancelar</button><button class="btn primary" data-act="lt-save">Compartir en el Muro</button></div>';
+  openSheet(h);
+}
+
 /* ---------- carrera con GPS en directo ---------- */
 const GPSK='srx-gps';
 let GPS=null, gpsWatch=null, gpsWake=null, gpsTick=null, gpsLastShare=0, gpsSaveT=0;
@@ -3429,10 +3468,11 @@ window.addEventListener('hashchange',()=>{ if(GPS) gpsUi() });
 let socCh=null, socPollT=null, socRT=null;
 function fmtHM(ts){ try{ return new Date(+ts).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}) }catch(e){ return '' } }
 function agoTxt(ts){ const m=Math.floor((Date.now()-(+ts||0))/60000); return !(m>=1)? 'ahora mismo' : m<60? 'hace '+m+' min' : 'hace '+Math.floor(m/60)+' h' }
-function isLive(f){ return !!(f&&f.live&&typeof f.live==='object'&&!f.end&&f.k===todayKey()&&((+f.sets||0)>0||!!(f.live.run&&typeof f.live.run==='object'))&&Date.now()-(+f.live.at||Date.parse(f.upd)||0)<90*60e3) }
+function isLive(f){ return !!(f&&f.live&&typeof f.live==='object'&&!f.end&&f.k===todayKey()&&((+f.sets||0)>0||!!(f.live.run&&typeof f.live.run==='object')||!!(f.live.garmin&&ltUrl(f.lt)))&&Date.now()-(+f.live.at||Date.parse(f.upd)||0)<(f.live.garmin? 4*3600e3 : 90*60e3)) }
 function liveBar(f){
   const L=f.live||{}, at=+L.at||Date.parse(f.upd)||Date.now(), R=(L.run&&typeof L.run==='object')? L.run : null;
   let h='<div class="live-box">';
+  if(L.garmin&&ltUrl(f.lt)) h+='<div class="lt-live"><p><b>Corriendo con Garmin</b> · compartido '+esc(agoTxt(+L.at||Date.now()))+'</p><a class="btn lt-btn" href="'+esc(ltUrl(f.lt))+'" target="_blank" rel="noopener noreferrer">'+LT_ICON+'Seguir en Garmin LiveTrack</a></div>';
   if(R){
     const km=Math.max(0,+R.km||0), mn=Math.max(0,+R.min||0), pace=km>=0.05? mn/km : 0;
     h+='<div class="live-run"><div class="lr-km"><b>'+fmtKm2(km)+'</b><small>km</small></div><div class="lr-st"><span>'+(R.paused? 'En pausa' : 'Corriendo')+' · '+esc(agoTxt(at))+'</span><span>'+fmtDur(mn)+(pace? ' · '+fmtPace(pace)+' /km' : '')+'</span></div></div>';
@@ -3458,10 +3498,11 @@ function ownPosts(){
 function muroMe(){
   const k=todayKey(), L=S.log.days[k], st=L? logStats(L) : null, a=(L&&L.act)||{};
   let body, btn='';
-  if(gpsActive(k)){ body='Estás corriendo en directo: tus amigos ven tus kilómetros al momento.'; btn='<a class="btn primary sm" href="#hoy">Ver mi carrera</a>' }
+  if(ltOn(k)){ body='Compartes tu Garmin LiveTrack: tus amigos pueden seguirte en directo en el mapa.'; btn='<button class="btn ghost sm" data-act="lt-stop">Dejar de compartir</button>' }
+  else if(gpsActive(k)){ body='Estás corriendo en directo: tus amigos ven tus kilómetros al momento.'; btn='<a class="btn primary sm" href="#hoy">Ver mi carrera</a>' }
   else if(!SOC.me) body='Elige tu nombre de usuario en <a class="link" href="#amigos">Amigos</a> para que tus amigos te encuentren.';
   else if(!shareOn()) body='No estás compartiendo tus entrenos. Actívalo en <a class="link" href="#amigos">Amigos</a>.';
-  else if(!st||!st.trained) body='Cuando marques tu primera serie, tus amigos lo verán aquí en directo.';
+  else if(!st||!st.trained){ body='Cuando marques tu primera serie o empieces a correr, tus amigos lo verán aquí en directo.'; btn='<button class="btn ghost sm" data-act="lt-open">'+LT_ICON+'Compartir Garmin LiveTrack</button>' }
   else if(!a.end){ body='Tus amigos ven tu entreno en directo: llevas '+fmtInt(st.sets)+' serie'+(st.sets==1?'':'s')+'. Al terminar, publícalo con una foto.'; btn='<button class="btn primary sm" data-act="fin-day">'+ICON.flag+'Finalizar y publicar</button>' }
   else { body=a.photo? 'Tu entreno de hoy ya está publicado con su foto.' : 'Tu entreno de hoy está publicado. Añádele una foto para tus amigos.'; btn=photoBtn('act:'+k, a.photo? 'Cambiar foto' : 'Añadir foto') }
   if(!S.profile.photo) btn+=photoBtn('avatar','Poner foto de perfil');
@@ -3552,6 +3593,10 @@ const A={
   'close-sheet':()=>closeSheet(),
   'settings':()=>openSettings(),
   'logout':()=>{ signOutLocal(false) },
+  'lt-open':()=>openLt(),
+  'lt-paste':async()=>{ try{ const t=String(await navigator.clipboard.readText()||''), m=t.match(/https:\/\/\S+/), i=document.getElementById('lt-url'); if(i) i.value=m? m[0] : t.trim() }catch(e){ toast('No pude leer lo copiado. Mantén pulsado el campo y elige «Pegar».') } },
+  'lt-save':()=>{ const i=document.getElementById('lt-url'), raw=String((i&&i.value)||''), m=raw.match(/https:\/\/\S+/), u=ltUrl(m? m[0] : raw); if(!u){ showErr('lt-err','Ese enlace no es de Garmin. Copia el enlace de LiveTrack desde la app Garmin Connect.'); return } const L=ensureDay(todayKey()); L.lt={url:u, at:Date.now()}; closeSheet(); commit(); toast('LiveTrack compartido: tus amigos ya pueden seguirte') },
+  'lt-stop':el=>{ if(!armed(el,'Toca otra vez para dejar de compartir')) return; const L=S.log.days[todayKey()]; if(L) delete L.lt; commit(); toast('Has dejado de compartir LiveTrack') },
   'gps-start':()=>gpsStart(),
   'gps-pause':()=>gpsPause(),
   'gps-resume':()=>gpsResumeRun(),

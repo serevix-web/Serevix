@@ -51,6 +51,7 @@ Funciona en cuanto ejecutes `supabase/schema.sql`, que ya incluye las tablas de 
 - En **Social › Muro** ves a tus amigos **en directo** mientras entrenan (serie a serie, al momento) y sus publicaciones con foto y comentario cuando terminan. Si llega algo nuevo, sale un punto en la pestaña Social.
 - **Correr en directo:** en Hoy, en la tarjeta de carrera, pulsa **«Correr con GPS en directo»**. El móvil mide los kilómetros, el tiempo, el ritmo y la ruta, y tus amigos lo ven en el Muro mientras corres. Deja Serevix abierta: en el iPhone el GPS de una app web se para si bloqueas la pantalla (la app la mantiene encendida sola).
 - La foto de perfil se pone en **Social › Amigos** (o en Perfil) y la ven tus amigos.
+- **Garmin LiveTrack:** si corres con el reloj, en Hoy o en el Muro pulsa **«Compartir Garmin LiveTrack»** y pega el enlace de LiveTrack de la app Garmin Connect. Tus amigos verán en el Muro un botón para seguirte en el mapa de Garmin. Solo se aceptan enlaces https de garmin.com.
 - Cada uno decide si comparte (interruptor en Amigos). Solo lo ven los seguidores aceptados.
 
 ### 7. Strava (y Garmin a través de Strava)
