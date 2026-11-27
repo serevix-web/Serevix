@@ -804,6 +804,7 @@ img{max-width:100%}
 .strava-h{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .strava-logo{font-family:var(--f-display);font-weight:700;color:#FC4C02;letter-spacing:.12em}
 .btn.strava-btn{background:#FC4C02;color:#fff}
+.strava.off .btn.strava-btn{opacity:.4;cursor:default}
 .lg-f{display:flex;flex-direction:column;gap:12px}
 .lg-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:14px;background:var(--surface-2);border:1px solid var(--line)}
 .lg-tabs button{min-height:42px;border-radius:10px;font-weight:700;color:var(--muted)}
@@ -3269,7 +3270,7 @@ async function stravaSync(manual){
   }
 }
 function stravaCard(){
-  if(!stravaOn()) return '';
+  if(!stravaOn()) return '<section class="card strava off anim" style="--i:1"><div class="strava-h"><span class="strava-logo">STRAVA</span><b>Conectar con Strava</b></div><p class="hint">'+(sb? 'La conexión con Strava aún no está activada en Serevix. En cuanto se active, aquí podrás conectar tu cuenta y tus carreras (y las de tu Garmin) llegarán solas.' : 'Disponible cuando Serevix tenga cuentas. Ahora mismo la app funciona sin cuenta y guarda todo solo en este móvil.')+'</p><div class="row-actions"><button class="btn strava-btn sm" disabled>Conectar con Strava</button></div></section>';
   const c=!!(S.strava&&S.strava.connected);
   return '<section class="card strava anim" style="--i:1"><div class="strava-h"><span class="strava-logo">STRAVA</span><b>'+(c? 'Conectado'+(S.strava.athlete? ' · '+esc(S.strava.athlete) : '') : 'Trae tus carreras de Strava')+'</b></div>'
     +'<p class="hint">'+(c? 'Tus carreras de Strava se importan solas al abrir la app'+(S.strava.last? ' (última vez: '+fmtShort(S.strava.last)+')' : '')+'. Si tu reloj Garmin sube a Strava, también llegan aquí.' : 'Conecta tu cuenta y Serevix importará tus carreras con distancia, ritmo, pulso, desnivel y ruta. Si tu Garmin sube a Strava, también llegan aquí.')+'</p>'
